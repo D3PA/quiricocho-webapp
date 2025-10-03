@@ -17,6 +17,10 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// rutas de autenticacion
+const authRoutes = require('./routes/auth');
+app.use('/api/auth', authRoutes);
+
 // manejo de rutas no encontradas
 app.use('*', (req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });
