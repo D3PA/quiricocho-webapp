@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const { syncModels } = require('./models');
 
 const app = express();
 
@@ -29,7 +30,9 @@ app.use((error, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`El servidor Quiricocho esta corriendo en puerto ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/api/health`);
+syncModels().then(() => {
+  app.listen(PORT, () => {
+    console.log(`El servidor Quiricocho esta corriendo en puerto ${PORT}`);
+    console.log(`Health check: http://localhost:${PORT}/api/health`);
+  });
 });
