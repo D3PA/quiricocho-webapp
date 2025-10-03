@@ -21,6 +21,10 @@ app.get('/api/health', (req, res) => {
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 
+// rutas de jugadores
+const playerRoutes = require('./routes/players');
+app.use('/api/players', playerRoutes);
+
 // manejo de rutas no encontradas
 app.use('*', (req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });
