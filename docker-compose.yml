@@ -1,0 +1,22 @@
+backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: quiricocho_backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=mysql
+      - DB_USER=quiricocho_user
+      - DB_PASSWORD=quiricocho_pass
+      - DB_NAME=quiricocho_db
+      - JWT_SECRET=quiricocho_jwt_secret_2025_xacademy
+    depends_on:
+      - mysql
+    networks:
+      - quiricocho-network
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev
