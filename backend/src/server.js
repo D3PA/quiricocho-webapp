@@ -11,7 +11,7 @@ app.use(express.json());
 // rutas basicas de prueba
 app.get('/api/health', (req, res) => {
   res.status(200).json({ 
-    message: 'Quiricocho Backend esta funcionando',
+    message: 'Quiricocho Backend se encuentra funcionando',
     timestamp: new Date().toISOString()
   });
 });

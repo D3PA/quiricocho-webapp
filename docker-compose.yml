@@ -11,7 +11,7 @@ backend:
       - DB_USER=quiricocho_user
       - DB_PASSWORD=quiricocho_pass
       - DB_NAME=quiricocho_db
-      - JWT_SECRET=quiricocho_jwt_secret_2025_xacademy
+      - JWT_SECRET=quiricocho_jwt_secret_desarrollo_2025_xacademy
     depends_on:
       - mysql
     networks:
