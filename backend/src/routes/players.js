@@ -3,7 +3,9 @@ const {
   getPlayers, 
   getPlayerById, 
   updatePlayer, 
-  createPlayer 
+  createPlayer,
+  exportPlayersToCSV,
+  getPlayerSkillsTimeline
 } = require('../controllers/playersController');
 const { playerUpdateValidation, playerCreateValidation } = require('../middleware/validators');
 const { authenticateToken } = require('../middleware/auth');
@@ -224,5 +226,23 @@ router.put('/:id', playerUpdateValidation, updatePlayer);
  *         description: Error interno del servidor
  */
 router.post('/', playerCreateValidation, createPlayer);
+
+/**
+ * @swagger
+ * /api/players/export/csv:
+ *   get:
+ *     summary: Exportar jugadores a CSV
+ *     tags: [Jugadores]
+ */
+router.get('/export/csv', exportPlayersToCSV);
+
+/**
+ * @swagger
+ * /api/players/{id}/timeline:
+ *   get:
+ *     summary: Obtener timeline de habilidades de un jugador
+ *     tags: [Jugadores]
+ */
+router.get('/:id/timeline', getPlayerSkillsTimeline);
 
 module.exports = router;
