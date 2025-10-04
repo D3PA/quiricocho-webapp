@@ -8,22 +8,27 @@
     "dev": "nodemon src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["fifa", "players", "management"],
+  "keywords": [
+    "fifa",
+    "players",
+    "management"
+  ],
   "author": "Rodrigo Muñoz",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "sequelize": "^6.32.1",
-    "mysql2": "^3.6.0",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2",
     "cors": "^2.8.5",
-    "express-validator": "^7.0.1",
     "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.6.0",
+    "sequelize": "^6.32.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
   }
 }
-
