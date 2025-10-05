@@ -1,17 +1,30 @@
+// imports y configuraciones
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+
 const { syncModels } = require('./models');
 const { swaggerUi, specs } = require('./config/swagger');
+const authRoutes = require('./routes/auth');
+const playerRoutes = require('./routes/players');
+const { authenticateToken } = require('./middleware/auth');
 
+// inicializacion de express y middlewares
 const app = express();
 
-// middlewares
 app.use(cors());
 app.use(express.json());
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs)); 
 
-// rutas basicas de prueba
+// rutas publicas
+app.get('/api/public/info', (req, res) => {
+  res.status(200).json({ 
+    message: 'Quiricocho Backend - Sistema de gestion de jugadores de FIFA',
+    version: '1.0.0',
+    requiresAuth: true,
+    authEndpoints: ['/api/auth/login', '/api/auth/register']
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.status(200).json({ 
     message: 'Quiricocho Backend se encuentra funcionando',
@@ -19,13 +32,14 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// rutas de autenticacion
-const authRoutes = require('./routes/auth');
+// Swagger para desarrollo (publica)
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs)); 
+
+// rutas de autenticacion (publica)
 app.use('/api/auth', authRoutes);
 
-// rutas de jugadores
-const playerRoutes = require('./routes/players');
-app.use('/api/players', playerRoutes);
+// rutas de jugadores (rutas protegidas, requieren autenticacion)
+app.use('/api/players', authenticateToken, playerRoutes);
 
 // manejo de rutas no encontradas
 app.use('*', (req, res) => {
@@ -38,6 +52,7 @@ app.use((error, req, res, next) => {
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
+// levantar servidor
 const PORT = process.env.PORT || 3000;
 
 syncModels().then(() => {

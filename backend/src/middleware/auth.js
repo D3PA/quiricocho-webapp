@@ -8,8 +8,9 @@ const authenticateToken = async (req, res, next) => {
 
     if (!token) {
       return res.status(401).json({ 
-        error: 'Token de acceso requerido',
-        code: 'TOKEN_REQUIRED'
+        error: 'Acceso no autorizado. Token de autenticacion requerido.',
+        code: 'TOKEN_REQUIRED',
+        loginUrl: '/api/auth/login'
       });
     }
 
