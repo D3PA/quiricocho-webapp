@@ -7,6 +7,51 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Iniciar sesion
+ *     tags: [Autenticación]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: rodri@quiricocho.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: Login exitoso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Credenciales invalidas
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/login', loginValidation, login);
+
+/**
+ * @swagger
  * /api/auth/register:
  *   post:
  *     summary: Registrar nuevo usuario
@@ -51,51 +96,6 @@ const router = express.Router();
  *               $ref: '#/components/schemas/Error'
  *       409:
  *         description: Usuario ya existe
- *       500:
- *         description: Error interno del servidor
- */
-router.post('/login', loginValidation, login);
-
-/**
- * @swagger
- * /api/auth/login:
- *   post:
- *     summary: Iniciar sesion
- *     tags: [Autenticación]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 example: rodri@quiricocho.com
- *               password:
- *                 type: string
- *                 format: password
- *                 example: "123456"
- *     responses:
- *       200:
- *         description: Login exitoso
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 token:
- *                   type: string
- *                 user:
- *                   $ref: '#/components/schemas/User'
- *       401:
- *         description: Credenciales invalidas
  *       500:
  *         description: Error interno del servidor
  */
