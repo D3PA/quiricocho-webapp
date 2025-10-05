@@ -233,8 +233,44 @@ router.post('/', playerCreateValidation, createPlayer);
  * @swagger
  * /api/players/export/csv:
  *   get:
- *     summary: Exportar jugadores a CSV
+ *     summary: Exportar jugadores filtrados a CSV
+ *     description: Descarga un archivo CSV con los jugadores aplicando los mismos filtros del listado
  *     tags: [Jugadores]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Buscar por nombre de jugador
+ *       - in: query
+ *         name: club
+ *         schema:
+ *           type: string
+ *         description: Filtrar por club
+ *       - in: query
+ *         name: position
+ *         schema:
+ *           type: string
+ *         description: Filtrar por posicion
+ *       - in: query
+ *         name: nationality
+ *         schema:
+ *           type: string
+ *         description: Filtrar por nacionalidad
+ *     responses:
+ *       200:
+ *         description: Archivo CSV descargado exitosamente
+ *         content:
+ *           text/csv:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       401:
+ *         description: No autorizado
+ *       500:
+ *         description: Error interno del servidor
  */
 router.get('/export/csv', exportPlayersToCSV);
 
@@ -242,8 +278,66 @@ router.get('/export/csv', exportPlayersToCSV);
  * @swagger
  * /api/players/{id}/timeline:
  *   get:
- *     summary: Obtener timeline de habilidades de un jugador
+ *     summary: Obtener linea de tiempo de habilidades de un jugador
+ *     description: Devuelve la evolucion de una habilidad especifica a traves de las diferentes versiones de FIFA
  *     tags: [Jugadores]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Nombre del jugador (ej. "Lionel Messi")
+ *       - in: query
+ *         name: skill
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [pace, shooting, passing, dribbling, defending, physic, overall]
+ *         description: Habilidad a visualizar en la linea de tiempo
+ *     responses:
+ *       200:
+ *         description: Linea de tiempo de habilidades
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 playerName:
+ *                   type: string
+ *                   example: "Lionel Messi"
+ *                 skill:
+ *                   type: string
+ *                   example: "pace"
+ *                 timeline:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       year:
+ *                         type: string
+ *                         example: "2020"
+ *                       value:
+ *                         type: integer
+ *                         example: 85
+ *                       age:
+ *                         type: integer
+ *                         example: 33
+ *                       overall:
+ *                         type: integer
+ *                         example: 93
+ *       400:
+ *         description: Parametros invalidos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: No autorizado
+ *       500:
+ *         description: Error interno del servidor
  */
 router.get('/:id/timeline', getPlayerSkillsTimeline);
 
@@ -251,8 +345,58 @@ router.get('/:id/timeline', getPlayerSkillsTimeline);
  * @swagger
  * /api/players/import/csv:
  *   post:
- *     summary: Importar jugadores a CSV
+ *     summary: Importar jugadores desde archivo CSV
+ *     description: Sube un archivo CSV con datos de jugadores y los importa a la base de datos
  *     tags: [Jugadores]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: Archivo CSV con datos de jugadores
+ *     responses:
+ *       201:
+ *         description: Jugadores importados exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "1500 jugadores importados exitosamente"
+ *                 imported:
+ *                   type: integer
+ *                   example: 1500
+ *                 totalInFile:
+ *                   type: integer
+ *                   example: 1500
+ *                 successRate:
+ *                   type: string
+ *                   example: "100%"
+ *       400:
+ *         description: Archivo invalido o faltante
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       413:
+ *         description: Archivo demasiado grande (maximo 200MB)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: No autorizado
+ *       500:
+ *         description: Error interno del servidor
  */
 router.post('/import/csv', smartUpload, importPlayersFromCSV);
 

@@ -22,6 +22,9 @@ pids
 *.seed
 *.pid.lock
 
+# Uploads temporales
+backend/uploads/
+
 # Coverage directory used by tools like istanbul
 coverage/
 .nyc_output

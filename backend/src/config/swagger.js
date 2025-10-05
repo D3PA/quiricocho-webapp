@@ -62,6 +62,30 @@ const options = {
             fifa_version: {
               type: 'string',
               description: 'Version de FIFA'
+            },
+            pace: {
+              type: 'integer',
+              description: 'Velocidad'
+            },
+            shooting: {
+              type: 'integer',
+              description: 'Disparo'
+            },
+            passing: {
+              type: 'integer',
+              description: 'Pase'
+            },
+            dribbling: {
+              type: 'integer',
+              description: 'Regate'
+            },
+            defending: {
+              type: 'integer',
+              description: 'Defensa'
+            },
+            physic: {
+              type: 'integer',
+              description: 'Fisico'
             }
           }
         },
