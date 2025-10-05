@@ -269,11 +269,132 @@ const getPlayerSkillsTimeline = async (req, res) => {
   }
 };
 
+// POST /api/players/import - importar jugadores desde CSV
+const importPlayersFromCSV = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        error: 'Archivo CSV requerido',
+        code: 'FILE_REQUIRED'
+      });
+    }
+
+    console.log(`Procesando archivo: ${req.file.originalname}`);
+    console.log(`Tamaño: ${(req.file.size / 1024 / 1024).toFixed(2)}MB`);
+    console.log(`Storage: ${req.file.buffer ? 'Memory' : 'Disk'}`);
+
+    const XLSX = require('xlsx');
+    let workbook;
+
+    // manejar tanto memory storage como disk storage
+    if (req.file.buffer) {
+      // archivo en memoria
+      workbook = XLSX.read(req.file.buffer, { 
+        type: 'buffer',
+        cellDates: true,
+        cellText: false,
+        cellNF: false 
+      });
+    } else {
+      // archivo en disco - leer desde path
+      workbook = XLSX.readFile(req.file.path, {
+        cellDates: true,
+        cellText: false,
+        cellNF: false
+      });
+    }
+    
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const playersData = XLSX.utils.sheet_to_json(worksheet);
+
+    console.log(`Encontrados ${playersData.length} registros en el CSV`);
+
+    // procesar en lotes
+    const batchSize = 1000;
+    let importedCount = 0;
+    let errors = [];
+
+    for (let i = 0; i < playersData.length; i += batchSize) {
+      const batch = playersData.slice(i, i + batchSize);
+      
+      try {
+        const processedPlayers = batch.map((player, index) => {
+          try {
+            return {
+              ...player,
+              fifa_version: player.fifa_version || '2023',
+              fifa_update: player.fifa_update || 'Imported',
+              player_face_url: player.player_face_url || 'https://cdn.sofifa.net/players/notfound/0_240.png'
+            };
+          } catch (error) {
+            errors.push(`Error en registro ${i + index}: ${error.message}`);
+            return null;
+          }
+        }).filter(player => player !== null);
+
+        if (processedPlayers.length > 0) {
+          const result = await Player.bulkCreate(processedPlayers, {
+            validate: false, // desactivar validacion para mejor performance
+            ignoreDuplicates: true,
+            logging: false
+          });
+
+          importedCount += result.length;
+        }
+
+        console.log(`Lote ${Math.floor(i/batchSize) + 1}/${Math.ceil(playersData.length/batchSize)}: ${processedPlayers.length} jugadores`);
+
+        // pequeña pausa para no saturar la DB
+        if (i + batchSize < playersData.length) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+      } catch (batchError) {
+        console.error(`Error en lote ${Math.floor(i/batchSize) + 1}:`, batchError.message);
+        errors.push(`Lote ${Math.floor(i/batchSize) + 1}: ${batchError.message}`);
+      }
+    }
+
+    // limpiar archivo temporal si estaba en disco
+    if (req.file.path && !req.file.buffer) {
+      fs.unlinkSync(req.file.path);
+    }
+
+    const response = {
+      message: `${importedCount} jugadores importados exitosamente`,
+      imported: importedCount,
+      totalInFile: playersData.length,
+      successRate: ((importedCount / playersData.length) * 100).toFixed(1) + '%'
+    };
+
+    if (errors.length > 0) {
+      response.warnings = `Se encontraron ${errors.length} errores durante la importación`;
+      response.errorCount = errors.length;
+    }
+
+    res.status(201).json(response);
+
+  } catch (error) {
+    // limpiar archivo temporal en caso de error
+    if (req.file && req.file.path && !req.file.buffer) {
+      fs.unlinkSync(req.file.path);
+    }
+
+    console.error('Error importando CSV:', error);
+    res.status(500).json({
+      error: 'Error interno del servidor durante importación',
+      code: 'CSV_IMPORT_ERROR',
+      details: error.message
+    });
+  }
+};
+
 module.exports = {
   getPlayers,
   getPlayerById,
   updatePlayer,
   createPlayer,
   exportPlayersToCSV,
-  getPlayerSkillsTimeline
+  getPlayerSkillsTimeline,
+  importPlayersFromCSV
 };

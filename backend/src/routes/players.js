@@ -5,9 +5,11 @@ const {
   updatePlayer, 
   createPlayer,
   exportPlayersToCSV,
-  getPlayerSkillsTimeline
+  getPlayerSkillsTimeline,
+  importPlayersFromCSV
 } = require('../controllers/playersController');
 const { playerUpdateValidation, playerCreateValidation } = require('../middleware/validators');
+const { smartUpload } = require('../middleware/upload');
 const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
@@ -244,5 +246,14 @@ router.get('/export/csv', exportPlayersToCSV);
  *     tags: [Jugadores]
  */
 router.get('/:id/timeline', getPlayerSkillsTimeline);
+
+/**
+ * @swagger
+ * /api/players/import/csv:
+ *   post:
+ *     summary: Importar jugadores a CSV
+ *     tags: [Jugadores]
+ */
+router.post('/import/csv', smartUpload, importPlayersFromCSV);
 
 module.exports = router;

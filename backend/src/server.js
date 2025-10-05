@@ -13,7 +13,8 @@ const { authenticateToken } = require('./middleware/auth');
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' })); // aumentar limite de JSON
+app.use(express.urlencoded({ extended: true, limit: '50mb' })); // para formularios
 
 // rutas publicas
 app.get('/api/public/info', (req, res) => {
