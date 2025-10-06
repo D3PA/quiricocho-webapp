@@ -51,6 +51,8 @@ const login = async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
+        name: user.name,
+        is_admin: user.is_admin,
         createdAt: user.createdAt
       }
     });
@@ -77,7 +79,7 @@ const register = async (req, res) => {
       });
     }
 
-    const { email, password } = req.body;
+    const { email, password, name } = req.body;
 
     // verificar si el usuario ya existe
     const existingUser = await User.findOne({ where: { email } });
@@ -89,7 +91,7 @@ const register = async (req, res) => {
     }
 
     // crear usuario
-    const user = await User.create({ email, password });
+    const user = await User.create({ email, password, name });
 
     // generar token
     const token = generateToken(user.id);
@@ -100,6 +102,8 @@ const register = async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
+        name: user.name,
+        is_admin: user.is_admin,
         createdAt: user.createdAt
       }
     });
@@ -121,6 +125,8 @@ const verifyToken = async (req, res) => {
       user: {
         id: req.user.id,
         email: req.user.email,
+        name: req.user.name,
+        is_admin: req.user.is_admin,
         createdAt: req.user.createdAt
       }
     });

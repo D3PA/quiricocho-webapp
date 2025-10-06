@@ -1,7 +1,30 @@
-backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: quiricocho_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: quiricocho_db
+      MYSQL_USER: quiricocho_user
+      MYSQL_PASSWORD: quiricocho_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./data/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: 
+      - --max_allowed_packet=256M
+      - --innodb_buffer_pool_size=512M
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 120s
+      retries: 10
+      start_period: 60s
+    networks:
+      - quiricocho-network
+
+  backend:
+    build: ./backend
     container_name: quiricocho_backend
     ports:
       - "3000:3000"
@@ -13,10 +36,19 @@ backend:
       - DB_NAME=quiricocho_db
       - JWT_SECRET=quiricocho_jwt_secret_desarrollo_2025_xacademy
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     networks:
       - quiricocho-network
     volumes:
       - ./backend:/app
       - /app/node_modules
     command: npm run dev
+
+volumes:
+  mysql_data:
+
+networks:
+  quiricocho-network:
+    driver: bridge
+    
