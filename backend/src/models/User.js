@@ -34,6 +34,8 @@ const User = sequelize.define('User', {
 }, {
   tableName: 'users',
   timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
   hooks: {
     beforeCreate: async (user) => {
       // solo encriptar si no esta ya encriptado

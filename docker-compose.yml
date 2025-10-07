@@ -52,15 +52,3 @@ networks:
   quiricocho-network:
     driver: bridge
   
-  frontend:
-    build: 
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: quiricocho_frontend
-    ports:
-      - "4200:80"
-    depends_on:
-      - backend
-    networks:
-      - quiricocho-network
-  

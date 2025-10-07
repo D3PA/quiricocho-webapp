@@ -6,19 +6,13 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
-  name?: string;
+  name: string;
 }
 
 export interface AuthResponse {
   message: string;
   token: string;
-  user: {
-    id: number;
-    email: string;
-    name: string;
-    is_admin: boolean;
-    created_at: string;
-  };
+  user: User;
 }
 
 export interface User {
@@ -26,5 +20,5 @@ export interface User {
   email: string;
   name: string;
   is_admin: boolean;
-  created_at: string;
+  createdAt: string;
 }

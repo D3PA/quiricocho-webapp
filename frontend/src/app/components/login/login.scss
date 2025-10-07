@@ -1,0 +1,164 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  
+  /* fondo para login y registro */
+  background: 
+    linear-gradient(rgba(10, 10, 10, 0.85), rgba(5, 5, 5, 0.9)),
+    url('/assets/images/login-bg.webp') center/cover no-repeat;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 48px 40px;
+  border: 2px solid var(--primary-color);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  position: relative;
+  z-index: 1;
+}
+
+.header-content {
+  text-align: center;
+  margin-bottom: 40px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    width: 100%;
+
+    .logo-icon {
+      height: 120px;
+      width: auto;
+    }
+  }
+
+  .mat-mdc-card-title {
+    font-size: 2.2em;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    text-align: center;
+    width: 100%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+  }
+
+  .mat-mdc-card-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1em;
+    text-align: center;
+    width: 100%;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+/* boton deshabilitado por defecto, verde solo cuando esta habilitado */
+.login-button {
+  width: 100%;
+  height: 52px;
+  font-weight: 600;
+  font-size: 16px;
+  margin-top: 12px;
+  border-radius: 12px;
+  background: var(--text-muted) !important;
+  color: var(--text-secondary) !important;
+  transition: all 0.3s ease;
+  border: none;
+  
+  /* cuando el formulario es valido */
+  &.enabled {
+    background: var(--primary-color) !important;
+    color: #000 !important;
+    
+    &:hover:not([disabled]) {
+      background: var(--primary-dark) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 255, 136, 0.3);
+    }
+  }
+  
+  &[disabled] {
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+.toggle-button {
+  width: 100%;
+  text-align: center;
+  color: var(--primary-color);
+  font-weight: 600;
+  margin-top: 24px;
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+  background: transparent;
+  
+  &:hover {
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.2);
+    transform: translateY(-2px);
+  }
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--error-color);
+  background: rgba(255, 71, 87, 0.1);
+  padding: 14px 16px;
+  border-radius: 8px;
+  margin: 20px 0;
+  font-size: 14px;
+  border: 1px solid rgba(255, 71, 87, 0.2);
+  text-align: center;
+}
+
+// responsive
+@media (max-width: 480px) {
+  .login-container {
+    padding: 16px;
+  }
+
+  .login-card {
+    padding: 40px 24px;
+    
+    .header-content {
+      .mat-mdc-card-title {
+        font-size: 1.8em;
+      }
+      
+      .logo .logo-icon {
+        height: 60px;
+      }
+    }
+  }
+}
+
