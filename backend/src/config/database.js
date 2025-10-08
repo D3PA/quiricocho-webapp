@@ -10,20 +10,36 @@ const sequelize = new Sequelize(
     dialect: 'mysql',
     port: process.env.DB_PORT || 3306,
     logging: process.env.NODE_ENV === 'development' ? console.log : false,
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000
-    }
+    define: {
+      charset: 'utf8mb4',
+      collate: 'utf8mb4_0900_ai_ci', 
+      timestamps: false
+    },
+    dialectOptions: {
+      charset: 'utf8mb4',
+      supportBigNumbers: true,
+      bigNumberStrings: true
+    },
+    timezone: '-03:00'
   }
 );
 
-// funcion para probar la conexion
+const forceUTF8 = async () => {
+  try {
+    await sequelize.query("SET NAMES 'utf8mb4';");
+    await sequelize.query("SET CHARACTER SET utf8mb4;");
+    await sequelize.query("SET character_set_connection = utf8mb4;");
+    console.log('Conexion forzada a UTF-8 correctamente');
+  } catch (error) {
+    console.error('Error forzando UTF-8 en la conexion:', error.message);
+  }
+};
+
 const testConnection = async () => {
   try {
     await sequelize.authenticate();
-    console.log('Conexión a la base de datos establecida correctamente');
+    await forceUTF8();
+    console.log('Conexion a la base de datos establecida correctamente');
     return true;
   } catch (error) {
     console.error('Error conectando a la base de datos:', error.message);

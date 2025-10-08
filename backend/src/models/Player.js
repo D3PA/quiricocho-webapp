@@ -211,7 +211,9 @@ const Player = sequelize.define('Player', {
   }
 }, {
   tableName: 'players',
-  timestamps: false // porque la tabla original no tiene created_at/updated_at
+  timestamps: false, // porque la tabla original no tiene created_at/updated_at
+  charset: 'utf8mb4',
+  collate: 'utf8mb4_0900_ai_ci'
 });
 
 module.exports = Player;

@@ -11,7 +11,10 @@ const getPlayers = async (req, res) => {
       search = '',
       club = '',
       position = '',
-      nationality = ''
+      nationality = '',
+      fifa_version = '',
+      sortBy = 'overall',
+      sortOrder = 'DESC'
     } = req.query;
 
     const offset = (page - 1) * limit;
@@ -43,17 +46,30 @@ const getPlayers = async (req, res) => {
       };
     }
 
+    if (fifa_version) {
+      whereConditions.fifa_version = fifa_version;
+    }
+
+    let order = [];
+    if (sortBy && sortOrder) {
+      order = [[sortBy, sortOrder.toUpperCase()]];
+    } else {
+      order = [['overall', 'DESC']]; 
+    }
+
     const { count, rows: players } = await Player.findAndCountAll({
       where: whereConditions,
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['overall', 'DESC']],
+      order: order,
       attributes: [
         'id', 'long_name', 'player_positions', 'club_name', 
-        'nationality_name', 'overall', 'age', 'fifa_version'
+        'nationality_name', 'overall', 'age', 'fifa_version',
+        'player_face_url','pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic'
       ]
     });
 
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.status(200).json({
       players,
       pagination: {
@@ -73,6 +89,7 @@ const getPlayers = async (req, res) => {
   }
 };
 
+
 // GET /api/players/:id - detalles de un jugador
 const getPlayerById = async (req, res) => {
   try {
@@ -87,6 +104,7 @@ const getPlayerById = async (req, res) => {
       });
     }
 
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.status(200).json({
       player
     });

@@ -26,6 +26,10 @@ export interface Player {
   dribbling: number;
   defending: number;
   physic: number;
+  goalkeeping_diving: number;
+  goalkeeping_handling: number;
+  goalkeeping_reflexes: number;
+  goalkeeping_positioning: number;
 }
 
 export interface PlayersResponse {
@@ -43,6 +47,9 @@ export interface PlayerFilters {
   club?: string;
   position?: string;
   nationality?: string;
+  fifa_version?: string;
   page?: number;
   limit?: number;
+  sortBy?: string;
+  sortOrder?: string;
 }

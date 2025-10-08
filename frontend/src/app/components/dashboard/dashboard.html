@@ -1,0 +1,162 @@
+<div class="dashboard-container">
+  <!-- Seccion del hero -->
+  <section class="hero-section">
+    <div class="video-background">
+      <video #heroVideo autoplay muted loop playsinline class="hero-video">
+        <source src="assets/videos/hero-bg.mp4" type="video/mp4">
+        <!-- Imagen fallback -->
+        <img src="assets/images/login-bg.webp" alt="Quiricocho Fallback">
+      </video>
+      <div class="video-overlay"></div>
+    </div>
+    
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1 class="hero-title">QUIRICOCHO</h1>
+        <p class="hero-subtitle">La plataforma definitiva para gestionar jugadores de FIFA</p>
+        <p class="hero-description">
+          Explora, gestiona y analiza más de 160,000 jugadores de todas las versiones de FIFA
+        </p>
+        <div class="partner-section">
+          <span class="partner-text">Partner oficial de</span>
+          <img src="assets/images/fifa/ea-sports.png" alt="EA Sports" class="partner-logo">
+        </div>
+        <div class="hero-actions">
+          <button mat-raised-button color="primary" routerLink="/players" class="hero-btn">
+            <mat-icon>sports_soccer</mat-icon>
+            Explorar Jugadores
+          </button>
+          <button mat-stroked-button color="primary" routerLink="/players/create" class="hero-btn secondary">
+            <mat-icon>person_add</mat-icon>
+            Crear Jugador
+          </button>
+        </div>
+      </div>
+      
+      <div class="hero-stats">
+        <div class="stat-card" *ngFor="let stat of stats">
+          <div class="stat-icon">
+            <mat-icon>{{stat.icon}}</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-number">{{stat.number}}</div>
+            <div class="stat-label">{{stat.label}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seccion de jugadores destacados -->
+  <section class="top-players-section" *ngIf="fifaVersions.length > 0">
+    <div class="section-header">
+      <h2 class="section-title">Jugadores Destacados</h2>
+      <p class="section-subtitle">Los mejores jugadores a través de las versiones de FIFA</p>
+    </div>
+
+    <!-- Controles del slider -->
+    <div class="slider-controls">
+      <button mat-icon-button (click)="previousVersion()" class="slider-btn">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      
+      <div class="version-display">
+        <img [src]="getFifaLogo(currentVersion)" [alt]="'FIFA ' + currentVersion" class="fifa-logo">
+      </div>
+      
+      <button mat-icon-button (click)="nextVersion()" class="slider-btn">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+
+    <!-- Indicadores del slider -->
+    <div class="slider-indicators">
+      <button *ngFor="let version of fifaVersions; let i = index" 
+              [class.active]="currentVersion === version"
+              (click)="setCurrentVersion(version)"
+              class="indicator">
+        {{version}}
+      </button>
+    </div>
+    
+    <!-- Tabla de jugadores -->
+    <div class="players-grid">
+      <div class="player-card" *ngFor="let player of getCurrentPlayers(); let i = index" 
+           [class.top-3]="i < 3"
+           (click)="viewPlayer(player.id)">
+        <div class="player-rank">{{i + 1}}</div>
+        <div class="player-image">
+          <img [src]="player.imageUrl" 
+               [alt]="player.long_name" 
+               class="player-img">
+        </div>
+        <div class="player-info">
+          <h3 class="player-name">{{player.long_name}}</h3>
+          <div class="player-details">
+            <span class="player-overall">{{player.overall}}</span>
+            <span class="player-position">{{player.player_positions}}</span>
+            <span class="player-club">{{player.club_name}}</span>
+          </div>
+          <div class="player-stats">
+            <div class="stat" *ngFor="let stat of getPlayerStats(player)">
+              <span class="stat-value">{{stat.value}}</span>
+              <span class="stat-name">{{stat.name}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="section-actions">
+      <button mat-raised-button color="primary" routerLink="/players" class="view-all-btn">
+        Ver Todos los Jugadores
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+  </section>
+
+  <!-- Seccion de caracteristicas -->
+  <section class="features-section">
+    <div class="section-background">
+      <div class="background-pattern"></div>
+    </div>
+    <div class="section-content">
+      <div class="section-header">
+        <h2 class="section-title">Características Principales</h2>
+        <p class="section-subtitle">Todo lo que puedes hacer en Quiricocho</p>
+      </div>
+      
+      <div class="features-grid">
+        <div class="feature-card" *ngFor="let feature of features" @fadeInUp>
+          <div class="feature-icon">
+            <mat-icon>{{feature.icon}}</mat-icon>
+          </div>
+          <h3 class="feature-title">{{feature.title}}</h3>
+          <p class="feature-description">{{feature.description}}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seccion de CTA -->
+  <section class="cta-section">
+    <div class="cta-background">
+      <div class="cta-pattern"></div>
+    </div>
+    <div class="cta-content">
+      <div class="cta-text">
+        <h2 class="cta-title">¿Listo para comenzar?</h2>
+        <p class="cta-description">
+          Explora nuestra base de datos completa y descubre estadísticas detalladas de cada jugador.
+        </p>
+        <button mat-raised-button color="primary" routerLink="/players" class="cta-btn">
+          Comenzar Exploración
+          <mat-icon>rocket_launch</mat-icon>
+        </button>
+      </div>
+      <div class="cta-image">
+        <img src="assets/images/players/cta-jugadores.png" alt="Jugadores" class="players-illustration">
+      </div>
+    </div>
+  </section>
+</div>

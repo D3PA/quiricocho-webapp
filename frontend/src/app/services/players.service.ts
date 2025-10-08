@@ -18,8 +18,11 @@ export class PlayersService {
     if (filters.club) params = params.set('club', filters.club);
     if (filters.position) params = params.set('position', filters.position);
     if (filters.nationality) params = params.set('nationality', filters.nationality);
+    if (filters.fifa_version) params = params.set('fifa_version', filters.fifa_version);
     if (filters.page) params = params.set('page', filters.page.toString());
     if (filters.limit) params = params.set('limit', filters.limit.toString());
+    if (filters.sortBy) params = params.set('sortBy', filters.sortBy);
+    if (filters.sortOrder) params = params.set('sortOrder', filters.sortOrder);
 
     return this.http.get<PlayersResponse>(this.apiUrl, { params });
   }
