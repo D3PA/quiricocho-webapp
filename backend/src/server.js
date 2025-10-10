@@ -5,7 +5,7 @@ require('dotenv').config();
 
 const { syncModels } = require('./models');
 const { sequelize } = require('./config/database'); 
-const { swaggerUi, specs } = require('./config/swagger');
+const { swaggerUi, swaggerSetup } = require('./config/swagger');
 const authRoutes = require('./routes/auth');
 const playerRoutes = require('./routes/players');
 const { authenticateToken } = require('./middleware/auth');
@@ -17,11 +17,8 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// headers utf-8
-app.use((req, res, next) => {
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  next();
-});
+// Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerSetup);
 
 // middleware que arregla los strings que vienen mal de la DB
 // por alguna razon algunos caracteres como acentos se ven mal porque mysql2 los esta interpretando mal.
@@ -60,9 +57,6 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
-
-// Swagger
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // rutas de autenticación
 app.use('/api/auth', authRoutes);

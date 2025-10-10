@@ -126,9 +126,28 @@ const options = {
       }
     }
   },
-  apis: ['./src/routes/*.js', './src/controllers/*.js'] // archivos que contienen documentacion
+  apis: ['./src/routes/*.js', './src/controllers/*.js']
 };
 
 const specs = swaggerJsdoc(options);
 
-module.exports = { swaggerUi, specs };
+const swaggerOptions = {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customCssUrl: 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui.css',
+  swaggerOptions: {
+    persistAuthorization: true,
+    displayRequestDuration: true,
+    tryItOutEnabled: true,
+    filter: true,
+    spec: specs  
+  }
+};
+
+const swaggerSetup = swaggerUi.setup(null, swaggerOptions);
+
+module.exports = {
+  swaggerUi,
+  specs,
+  swaggerSetup
+};
