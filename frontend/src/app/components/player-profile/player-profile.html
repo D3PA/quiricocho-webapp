@@ -1,0 +1,380 @@
+<div class="player-profile-container">
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="60" color="primary"></mat-spinner>
+    <h3>Cargando información del jugador...</h3>
+  </div>
+
+  <!-- Contenido del jugador -->
+  <div *ngIf="!isLoading && player" class="player-content">
+    <!-- Header con boton de regreso -->
+    <div class="profile-header">
+      <button mat-stroked-button (click)="goBack()" class="back-btn">
+        <mat-icon>arrow_back</mat-icon>
+        Volver a Búsqueda
+      </button>
+      <h1 class="player-name">{{ player.long_name }}</h1>
+      
+      <div class="header-actions">
+        <div class="player-overall-badge" [style.background]="utilsService.getStatColor(player.overall)">
+          {{ player.overall }}
+        </div>
+        
+        <!-- Boton de edicion (solo para admin) -->
+        <button 
+          *ngIf="isAdmin" 
+          mat-raised-button 
+          color="primary" 
+          (click)="editPlayer()"
+          class="edit-btn"
+        >
+          <mat-icon>edit</mat-icon>
+          Editar Jugador
+        </button>
+      </div>
+    </div>
+
+    <!-- Main content grid -->
+    <div class="profile-grid">
+      <!-- Card 1: informacion general -->
+      <mat-card class="profile-card general-info-card">
+        <mat-card-header>
+          <mat-card-title>Información General</mat-card-title>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="general-content">
+            <!-- Imagen del jugador -->
+            <div class="player-image-section">
+              <img 
+                [src]="utilsService.getPlayerImage(player)" 
+                [alt]="player.long_name"
+                class="player-main-image"
+                onerror="this.src='assets/images/players/default-player.png'"
+              >
+              <div class="player-badges">
+                <div class="version-badge">FIFA {{ player.fifa_version }}</div>
+                <div class="potential-badge" [style.background]="utilsService.getStatColor(player.potential)">
+                  Potencial {{ player.potential }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Informacion basica -->
+            <div class="basic-info">
+              <div class="info-row">
+                <div class="info-item">
+                  <mat-icon>person</mat-icon>
+                  <div class="info-content">
+                    <span class="info-label">Edad</span>
+                    <span class="info-value">{{ player.age }} años</span>
+                  </div>
+                </div>
+                
+                <div class="info-item">
+                  <mat-icon>public</mat-icon>
+                  <div class="info-content">
+                    <span class="info-label">Nacionalidad</span>
+                    <span class="info-value">{{ player.nationality_name }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-row">
+                <div class="info-item">
+                  <mat-icon>sports_soccer</mat-icon>
+                  <div class="info-content">
+                    <span class="info-label">Posición</span>
+                    <span class="info-value">{{ player.player_positions }}</span>
+                  </div>
+                </div>
+                
+                <div class="info-item">
+                  <mat-icon>stadium</mat-icon>
+                  <div class="info-content">
+                    <span class="info-label">Club</span>
+                    <span class="info-value">{{ player.club_name || 'Sin Club' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-row">
+                <div class="info-item">
+                  <mat-icon>payments</mat-icon>
+                  <div class="info-content">
+                    <span class="info-label">Valor</span>
+                    <span class="info-value">{{ formatCurrency(player.value_eur) }}</span>
+                  </div>
+                </div>
+                
+                <div class="info-item">
+                  <mat-icon>attach_money</mat-icon>
+                  <div class="info-content">
+                    <span class="info-label">Salario</span>
+                    <span class="info-value">{{ formatCurrency(player.wage_eur) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-row">
+                <div class="info-item">
+                  <mat-icon>straighten</mat-icon>
+                  <div class="info-content">
+                    <span class="info-label">Altura</span>
+                    <span class="info-value">{{ player.height_cm }} cm</span>
+                  </div>
+                </div>
+                
+                <div class="info-item">
+                  <mat-icon>fitness_center</mat-icon>
+                  <div class="info-content">
+                    <span class="info-label">Peso</span>
+                    <span class="info-value">{{ player.weight_kg }} kg</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Skills & Ratings -->
+            <div class="skills-section">
+              <h3>Habilidades Especiales</h3>
+              
+              <div class="skill-rating">
+                <div class="rating-item">
+                  <span class="rating-label">Pierna Mala</span>
+                  <div class="stars">
+                    <mat-icon *ngFor="let star of getWeakFootStars()">star</mat-icon>
+                    <mat-icon *ngFor="let empty of [].constructor(5 - getWeakFootStars().length)">star_border</mat-icon>
+                  </div>
+                </div>
+                
+                <div class="rating-item">
+                  <span class="rating-label">Skill Moves</span>
+                  <div class="stars">
+                    <mat-icon *ngFor="let star of getSkillMovesStars()">star</mat-icon>
+                    <mat-icon *ngFor="let empty of [].constructor(5 - getSkillMovesStars().length)">star_border</mat-icon>
+                  </div>
+                </div>
+                
+                <div class="rating-item">
+                  <span class="rating-label">Reputación Internacional</span>
+                  <div class="stars">
+                    <mat-icon *ngFor="let star of getInternationalReputationStars()">star</mat-icon>
+                    <mat-icon *ngFor="let empty of [].constructor(5 - getInternationalReputationStars().length)">star_border</mat-icon>
+                  </div>
+                </div>
+              </div>
+
+              <div class="additional-info">
+                <div class="additional-item">
+                  <span class="additional-label">Pierna Hábil</span>
+                  <span class="additional-value">{{ player.preferred_foot }}</span>
+                </div>
+                <div class="additional-item">
+                  <span class="additional-label">Work Rate</span>
+                  <span class="additional-value">{{ player.work_rate }}</span>
+                </div>
+                <div class="additional-item">
+                  <span class="additional-label">Tipo de Cuerpo</span>
+                  <span class="additional-value">{{ player.body_type }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Card 2: habilidades y radar -->
+      <div class="skills-column">
+        <!-- Radar chart con traits -->
+        <mat-card class="profile-card radar-card">
+          <mat-card-header>
+            <mat-card-title>Perfil de Habilidades</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="radar-content">
+              <div class="chart-container">
+                <canvas #radarChart></canvas>
+              </div>
+              
+              <!-- Seccion de traits -->
+              <div class="traits-section" *ngIf="playerTraits.length > 0">
+                <h4>Rasgos Especiales</h4>
+                <div class="traits-list">
+                  <mat-chip 
+                    *ngFor="let trait of playerTraits" 
+                    class="trait-chip"
+                    matTooltip="{{trait}}"
+                  >
+                    <mat-icon class="trait-icon">star</mat-icon>
+                    {{trait}}
+                  </mat-chip>
+                </div>
+              </div>
+              
+              <div class="traits-section" *ngIf="playerTraits.length === 0">
+                <h4>Rasgos Especiales</h4>
+                <p class="no-traits">Este jugador no tiene rasgos especiales registrados</p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Skills groups card -->
+        <mat-card class="profile-card skills-card">
+          <mat-card-header>
+            <mat-card-title>Habilidades Detalladas</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="skills-groups">
+              <div *ngFor="let group of skillGroups" class="skill-group">
+                <div class="group-header">
+                  <h4 class="group-name">{{ group.name }}</h4>
+                  <div class="group-average" [style.background]="utilsService.getStatColor(group.average)">
+                    {{ group.average }}
+                  </div>
+                </div>
+                
+                <!-- Average bar -->
+                <div class="average-bar-container">
+                  <div 
+                    class="average-bar" 
+                    [style.width.%]="group.average"
+                    [style.background]="utilsService.getStatColor(group.average)"
+                  ></div>
+                </div>
+                
+                <!-- Individual skills -->
+                <div class="individual-skills">
+                  <div *ngFor="let skill of group.skills" class="skill-item">
+                    <span class="skill-name">{{ skill.name }}</span>
+                    <div class="skill-value-container">
+                      <span 
+                        class="skill-value"
+                        [style.color]="skill.color"
+                      >
+                        {{ skill.value }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Card 3: timeline con selector de habilidades -->
+      <mat-card class="profile-card timeline-card">
+        <mat-card-header>
+          <mat-card-title>Evolución Temporal</mat-card-title>
+          <mat-card-subtitle>
+            Visualiza cómo ha variado una habilidad específica a lo largo de los años
+          </mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="timeline-content">
+            
+            <!-- Selector de habilidades -->
+            <div class="skill-selector">
+              <mat-form-field appearance="outline" class="skill-dropdown">
+                <mat-label>Seleccionar Habilidad</mat-label>
+                <mat-select [(value)]="selectedSkill" (selectionChange)="onSkillChange()">
+                  <!-- Grupo principal -->
+                  <mat-optgroup label="Habilidades Principales">
+                    <mat-option *ngFor="let skill of principalSkills" 
+                               [value]="skill.value">
+                      {{ skill.label }}
+                    </mat-option>
+                  </mat-optgroup>
+                  
+                  <!-- Grupo ataque -->
+                  <mat-optgroup label="Habilidades de Ataque">
+                    <mat-option *ngFor="let skill of attackSkills" 
+                               [value]="skill.value">
+                      {{ skill.label }}
+                    </mat-option>
+                  </mat-optgroup>
+                  
+                  <!-- Grupo skill -->
+                  <mat-optgroup label="Habilidades de Skill">
+                    <mat-option *ngFor="let skill of skillSkills" 
+                               [value]="skill.value">
+                      {{ skill.label }}
+                    </mat-option>
+                  </mat-optgroup>
+                  
+                  <!-- Grupo defensa -->
+                  <mat-optgroup label="Habilidades de Defensa">
+                    <mat-option *ngFor="let skill of defenseSkills" 
+                               [value]="skill.value">
+                      {{ skill.label }}
+                    </mat-option>
+                  </mat-optgroup>
+                  
+                  <!-- Grupo arquero -->
+                  <mat-optgroup label="Habilidades de Arquero">
+                    <mat-option *ngFor="let skill of goalkeeperSkills" 
+                               [value]="skill.value">
+                      {{ skill.label }}
+                    </mat-option>
+                  </mat-optgroup>
+                </mat-select>
+              </mat-form-field>
+              
+              <!-- Loading indicator -->
+              <mat-spinner *ngIf="isTimelineLoading" diameter="24" class="timeline-spinner"></mat-spinner>
+            </div>
+
+            <!-- Mensaje si hay pocas versiones -->
+            <div *ngIf="timelineData.length < 3" class="timeline-warning">
+              <mat-icon>info</mat-icon>
+              <span>Este jugador tiene pocas versiones registradas</span>
+            </div>
+            
+            <!-- Grafico -->
+            <div class="chart-container">
+              <canvas #timelineChart></canvas>
+            </div>
+            
+            <!-- Estadisticas -->
+            <div class="timeline-stats">
+              <div class="timeline-stat">
+                <span class="stat-label">Versiones</span>
+                <span class="stat-value">{{ timelineData.length }}</span>
+              </div>
+              <div class="timeline-stat">
+                <span class="stat-label">Mejor Valor</span>
+                <span class="stat-value" [style.color]="utilsService.getStatColor(getMaxOverall())">
+                  {{ getMaxOverall() }}
+                </span>
+              </div>
+              <div class="timeline-stat">
+                <span class="stat-label">Progreso</span>
+                <span 
+                  class="stat-value" 
+                  [class.positive]="getProgress() > 0"
+                  [class.negative]="getProgress() < 0"
+                  [class.neutral]="getProgress() === 0"
+                >
+                  {{ getProgress() > 0 ? '+' : '' }}{{ getProgress() }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="!isLoading && !player" class="error-container">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <h3>Jugador no encontrado</h3>
+    <p>No pudimos cargar la información del jugador solicitado.</p>
+    <button mat-raised-button color="primary" (click)="goBack()">
+      Volver a Búsqueda
+    </button>
+  </div>
+</div>

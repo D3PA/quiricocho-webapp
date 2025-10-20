@@ -195,3 +195,61 @@ html, body {
     }
   }
 }
+
+/* dialogs negros */
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-color: transparent !important;
+}
+
+.mat-mdc-dialog-surface {
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.mat-mdc-dialog-title {
+  color: var(--text-primary) !important;
+  font-family: 'Exo 2', sans-serif !important;
+}
+
+.mat-mdc-dialog-content {
+  color: var(--text-primary) !important;
+  font-family: 'Exo 2', sans-serif !important;
+}
+
+.dark-dialog-container {
+  .mat-mdc-dialog-container {
+    background: transparent !important;
+  }
+  
+  .mat-mdc-dialog-surface {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+  }
+}
+
+html, body, app-root {
+  height: 100%;
+  min-height: 100vh;
+  overflow: visible !important;
+  position: static !important;
+}
+
+.cdk-overlay-container,
+.cdk-overlay-backdrop {
+  position: fixed !important;
+  inset: 0 !important; 
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 1000 !important;
+}
+
+.mat-mdc-dialog-backdrop {
+  background-color: rgba(0, 0, 0, 0.7) !important; 
+}
+
+.mat-mdc-dialog-backdrop {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}

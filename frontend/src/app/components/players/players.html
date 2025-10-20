@@ -1,0 +1,225 @@
+<div class="players-container">
+  <!-- Header -->
+  <div class="search-header">
+    <div class="header-content">
+      <h1 class="page-title">Explorar Jugadores</h1>
+      <p class="page-subtitle">Descubre y analiza más de 160,000 jugadores de FIFA</p>
+    </div>
+  </div>
+
+  <!-- Formulario de busqueda -->
+  <div class="search-section">
+    <div class="search-container">
+      <form [formGroup]="searchForm" class="search-form">
+        <div class="search-controls">
+          <!-- Input de busqueda principal -->
+          <mat-form-field appearance="outline" class="search-field square-input">
+            <mat-label>Buscar jugadores, clubes o posiciones...</mat-label>
+            <input 
+              matInput 
+              formControlName="searchTerm" 
+              placeholder="Ej: Messi, Real Madrid, Posición: RW, MCD, GK..."
+            >
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <!-- Selector de version FIFA -->
+          <mat-form-field appearance="outline" class="version-field square-input">
+            <mat-label>Versión FIFA</mat-label>
+            <mat-select formControlName="fifaVersion">
+              <mat-option *ngFor="let version of fifaVersions" [value]="version.value">
+                {{ version.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Boton limpiar -->
+          <button 
+            *ngIf="searchForm.get('searchTerm')?.value" 
+            type="button" 
+            mat-stroked-button 
+            color="warn"
+            (click)="clearSearch()" 
+            class="clear-btn rounded-btn"
+          >
+            <mat-icon>clear</mat-icon>
+            Limpiar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Estados de la aplicacion -->
+  <div class="results-section">
+    <!-- Loading -->
+    <div *ngIf="isSearching" class="loading-state">
+      <div class="loading-content">
+        <mat-spinner diameter="50" color="primary"></mat-spinner>
+        <h3>Buscando en nuestra base de datos...</h3>
+        <p>Analizando más de 160,000 jugadores</p>
+      </div>
+    </div>
+
+    <!-- Resultados de busqueda -->
+    <div *ngIf="searchPerformed && !isSearching" class="results-container">
+      <!-- Informacion de resultados -->
+      <div class="results-info" *ngIf="filteredPlayers.length > 0">
+        <div class="results-header">
+          <h2 class="results-title">
+            {{ showAllResults ? 'Todos los resultados' : 'Resultados destacados' }}
+            <span class="results-count">{{ filteredPlayers.length }} jugadores</span>
+          </h2>
+          <div class="results-actions">
+            <button 
+              *ngIf="!showAllResults && allResults.length > 10"
+              mat-raised-button 
+              color="primary"
+              (click)="showAll()"
+              class="view-all-btn rounded-btn"
+            >
+              <mat-icon>unfold_more</mat-icon>
+              Ver todos los {{ allResults.length }} resultados
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid de jugadores -->
+      <div *ngIf="filteredPlayers.length > 0" class="players-grid">
+        <div 
+          *ngFor="let player of filteredPlayers; let i = index" 
+          class="player-card rounded-card"
+          (click)="selectPlayer(player)"
+        >
+          <div class="card-content">
+            <!-- Imagen del jugador -->
+            <div class="player-image">
+              <img 
+                [src]="player.imageUrl" 
+                [alt]="player.long_name"
+                class="player-img"
+                onerror="this.src='assets/images/players/default-player.png'"
+              >
+              <div class="player-overall rounded-badge" [style.background]="utilsService.getStatColor(player.overall)">
+                {{ player.overall }}
+              </div>
+              <div class="player-version rounded-badge">
+                FIFA {{ player.fifa_version }}
+              </div>
+            </div>
+            
+            <!-- Informacion del jugador -->
+            <div class="player-info">
+              <h3 class="player-name">{{ player.long_name }}</h3>
+              
+              <div class="player-meta">
+                <div class="meta-item">
+                  <mat-icon class="meta-icon">sports_soccer</mat-icon>
+                  <span class="meta-text">{{ player.mainPosition }}</span>
+                </div>
+                
+                <div class="meta-item" *ngIf="player.club_name">
+                  <mat-icon class="meta-icon">stadium</mat-icon>
+                  <span class="meta-text">{{ player.club_name }}</span>
+                </div>
+                
+                <div class="meta-item">
+                  <mat-icon class="meta-icon">public</mat-icon>
+                  <span class="meta-text">{{ player.nationality_name }}</span>
+                </div>
+              </div>
+
+              <!-- Stats relevantes -->
+              <div class="player-stats">
+                <div 
+                  class="stat-item" 
+                  *ngFor="let stat of player.relevantStats"
+                >
+                  <div class="stat-bar-container rounded-bar">
+                    <div 
+                      class="stat-bar rounded-bar" 
+                      [style.width.%]="stat.value"
+                      [style.background]="stat.color"
+                    ></div>
+                  </div>
+                  <div class="stat-info">
+                    <span class="stat-label">{{ stat.name }}</span>
+                    <span class="stat-value">{{ stat.value }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Informacion adicional -->
+              <div class="player-additional">
+                <div class="additional-item">
+                  <span class="additional-label">Edad</span>
+                  <span class="additional-value">{{ player.age }} años</span>
+                </div>
+                <div class="additional-item">
+                  <span class="additional-label">Potencial</span>
+                  <span class="additional-value">{{ player.potential }}</span>
+                </div>
+                <div class="additional-item" *ngIf="player.value_eur">
+                  <span class="additional-label">Valor</span>
+                  <span class="additional-value">{{ player.value_eur | number }} €</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sin resultados -->
+      <div *ngIf="filteredPlayers.length === 0 && searchPerformed && !isSearching" class="no-results rounded-card">
+        <div class="no-results-content">
+          <div class="no-results-icon">
+            <mat-icon>search_off</mat-icon>
+          </div>
+          <h3>No encontramos coincidencias</h3>
+          <p>No hay jugadores que coincidan con "<strong>{{ searchForm.get('searchTerm')?.value }}</strong>"</p>
+          <button mat-raised-button color="primary" (click)="clearSearch()" class="retry-btn rounded-btn">
+            <mat-icon>refresh</mat-icon>
+            Nueva búsqueda
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado inicial -->
+    <div *ngIf="!searchPerformed && !isSearching" class="initial-state">
+      <div class="initial-content">
+        <!-- Imagen -->
+        <div class="hero-section">
+          <div class="hero-image">
+            <img src="assets/images/players/search-hero.png" alt="Buscar Jugadores" class="hero-img">
+          </div>
+        </div>
+        
+        <!-- Contenido -->
+        <div class="welcome-section">
+          <h2>¡Comienza tu búsqueda!</h2>
+          <p class="hero-description">Explora nuestra completa base de datos de jugadores de FIFA</p>
+
+          <div class="quick-tips rounded-card">
+            <h3>¿Cómo empezar?</h3>
+            <div class="tips-grid">
+              <div class="tip-item">
+                <span class="tip-number rounded-badge">1</span>
+                <p>Escribe al menos <strong>2 caracteres</strong> para activar la búsqueda</p>
+              </div>
+              <div class="tip-item">
+                <span class="tip-number rounded-badge">2</span>
+                <p>Usa el filtro de <strong>versión FIFA</strong> para refinar resultados</p>
+              </div>
+              <div class="tip-item">
+                <span class="tip-number rounded-badge">3</span>
+                <p>Haz clic en cualquier jugador para ver su <strong>perfil completo</strong></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

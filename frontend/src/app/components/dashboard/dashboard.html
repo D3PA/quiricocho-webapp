@@ -93,8 +93,10 @@
         <div class="player-info">
           <h3 class="player-name">{{player.long_name}}</h3>
           <div class="player-details">
-            <span class="player-overall">{{player.overall}}</span>
-            <span class="player-position">{{player.player_positions}}</span>
+            <span class="player-overall" [style.background]="getOverallColor(player.overall)">
+              {{player.overall}}
+            </span>
+            <span class="player-position">{{player.mainPosition}}</span> 
             <span class="player-club">{{player.club_name}}</span>
           </div>
           <div class="player-stats">

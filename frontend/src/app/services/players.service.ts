@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Player, PlayersResponse, PlayerFilters } from '../interfaces/player';
 
 @Injectable({
@@ -27,6 +28,22 @@ export class PlayersService {
     return this.http.get<PlayersResponse>(this.apiUrl, { params });
   }
 
+  // metodo para busqueda rapida
+  searchPlayers(searchTerm: string, fifaVersion: string = 'all'): Observable<Player[]> {
+    let params = new HttpParams()
+      .set('search', searchTerm)
+      .set('limit', '50');
+    
+    if (fifaVersion !== 'all') {
+      params = params.set('fifa_version', fifaVersion);
+    }
+
+    return this.http.get<PlayersResponse>(this.apiUrl, { params })
+      .pipe(
+        map(response => response.players) 
+      );
+  }
+
   getPlayerById(id: number): Observable<{ player: Player }> {
     return this.http.get<{ player: Player }>(`${this.apiUrl}/${id}`);
   }
@@ -37,6 +54,10 @@ export class PlayersService {
 
   createPlayer(playerData: Partial<Player>): Observable<any> {
     return this.http.post(this.apiUrl, playerData);
+  }
+
+  getPlayerTimeline(playerId: number, skill: string = 'overall'): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${playerId}/timeline?skill=${skill}`);
   }
 
   exportToCSV(filters: PlayerFilters = {}): Observable<Blob> {

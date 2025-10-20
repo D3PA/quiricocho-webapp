@@ -21,6 +21,21 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   { 
+    path: 'players', 
+    loadComponent: () => import('./components/players/players').then(c => c.PlayersComponent),
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'player/:id', 
+    loadComponent: () => import('./components/player-profile/player-profile').then(c => c.PlayerProfileComponent),
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'player-edit/:id', 
+    loadComponent: () => import('./components/player-edit/player-edit').then(c => c.PlayerEditComponent),
+    canActivate: [AuthGuard]
+  },
+  { 
     path: '**', 
     redirectTo: 'login' 
   }

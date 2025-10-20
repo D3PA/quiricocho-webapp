@@ -1,13 +1,14 @@
 const { validationResult } = require('express-validator');
 const { Player, sequelize } = require('../models');
 const { Op } = require('sequelize');
+const fs = require('fs');
 
 // GET /api/players - listado paginado y filtrado
 const getPlayers = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 10,
+      limit = 50,
       search = '',
       club = '',
       position = '',
@@ -19,31 +20,29 @@ const getPlayers = async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    // construir condiciones de busqueda
+    // construir condiciones de busqueda MEJORADO
     const whereConditions = {};
 
     if (search) {
-      whereConditions.long_name = {
-        [Op.like]: `%${search}%`
-      };
+      whereConditions[Op.or] = [
+        { long_name: { [Op.like]: `%${search}%` } },
+        { club_name: { [Op.like]: `%${search}%` } },
+        { player_positions: { [Op.like]: `%${search}%` } },
+        { nationality_name: { [Op.like]: `%${search}%` } }
+      ];
     }
 
-    if (club) {
-      whereConditions.club_name = {
-        [Op.like]: `%${club}%`
-      };
+    // Filtros individuales (para cuando se usan filtros específicos)
+    if (club && !search) {
+      whereConditions.club_name = { [Op.like]: `%${club}%` };
     }
 
-    if (position) {
-      whereConditions.player_positions = {
-        [Op.like]: `%${position}%`
-      };
+    if (position && !search) {
+      whereConditions.player_positions = { [Op.like]: `%${position}%` };
     }
 
-    if (nationality) {
-      whereConditions.nationality_name = {
-        [Op.like]: `%${nationality}%`
-      };
+    if (nationality && !search) {
+      whereConditions.nationality_name = { [Op.like]: `%${nationality}%` };
     }
 
     if (fifa_version) {
@@ -57,16 +56,12 @@ const getPlayers = async (req, res) => {
       order = [['overall', 'DESC']]; 
     }
 
+    // OBTENER TODOS LOS CAMPOS
     const { count, rows: players } = await Player.findAndCountAll({
       where: whereConditions,
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: order,
-      attributes: [
-        'id', 'long_name', 'player_positions', 'club_name', 
-        'nationality_name', 'overall', 'age', 'fifa_version',
-        'player_face_url','pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic'
-      ]
+      order: order
     });
 
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -88,7 +83,6 @@ const getPlayers = async (req, res) => {
     });
   }
 };
-
 
 // GET /api/players/:id - detalles de un jugador
 const getPlayerById = async (req, res) => {
@@ -118,13 +112,13 @@ const getPlayerById = async (req, res) => {
   }
 };
 
-// PUT /api/players/:id - actualizar jugador
+// PUT /api/players/:id - actualizar jugador (MEJORADO)
 const updatePlayer = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        error: 'Datos de entrada invalidos',
+        error: 'Datos de entrada inválidos',
         details: errors.array(),
         code: 'VALIDATION_ERROR'
       });
@@ -132,6 +126,14 @@ const updatePlayer = async (req, res) => {
 
     const { id } = req.params;
     const updateData = req.body;
+
+    // verificar que el usuario es admin
+    if (!req.user || !req.user.is_admin) {
+      return res.status(403).json({
+        error: 'No tienes permisos para editar jugadores',
+        code: 'FORBIDDEN'
+      });
+    }
 
     const player = await Player.findByPk(id);
 
@@ -142,7 +144,37 @@ const updatePlayer = async (req, res) => {
       });
     }
 
-    await player.update(updateData);
+    // campos que se pueden actualizar
+    const allowedFields = [
+      'long_name', 'player_positions', 'club_name', 'nationality_name',
+      'overall', 'potential', 'value_eur', 'wage_eur', 'age', 'height_cm', 'weight_kg',
+      'preferred_foot', 'weak_foot', 'skill_moves', 'international_reputation',
+      'work_rate', 'body_type', 'player_traits',
+      // habilidades principales
+      'pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic',
+      // habilidades específicas
+      'attacking_crossing', 'attacking_finishing', 'attacking_heading_accuracy',
+      'attacking_short_passing', 'attacking_volleys', 'skill_dribbling',
+      'skill_curve', 'skill_fk_accuracy', 'skill_long_passing', 'skill_ball_control',
+      'movement_acceleration', 'movement_sprint_speed', 'movement_agility',
+      'movement_reactions', 'movement_balance', 'power_shot_power', 'power_jumping',
+      'power_stamina', 'power_strength', 'power_long_shots', 'mentality_aggression',
+      'mentality_interceptions', 'mentality_positioning', 'mentality_vision',
+      'mentality_penalties', 'mentality_composure', 'defending_marking',
+      'defending_standing_tackle', 'defending_sliding_tackle', 'goalkeeping_diving',
+      'goalkeeping_handling', 'goalkeeping_kicking', 'goalkeeping_positioning',
+      'goalkeeping_reflexes', 'goalkeeping_speed'
+    ];
+
+    // filtrar solo los campos permitidos
+    const filteredUpdateData = {};
+    Object.keys(updateData).forEach(key => {
+      if (allowedFields.includes(key)) {
+        filteredUpdateData[key] = updateData[key];
+      }
+    });
+
+    await player.update(filteredUpdateData);
 
     res.status(200).json({
       message: 'Jugador actualizado exitosamente',
@@ -193,7 +225,7 @@ const createPlayer = async (req, res) => {
   }
 };
 
-// GET /api/players/export - exportar jugadores a CSV
+// GET /api/players/export/csv - exportar jugadores a CSV
 const exportPlayersToCSV = async (req, res) => {
   try {
     const { search = '', club = '', position = '', nationality = '' } = req.query;
@@ -236,46 +268,75 @@ const exportPlayersToCSV = async (req, res) => {
   }
 };
 
-// GET /api/players/:id/timeline - timeline de habilidades
+// GET /api/players/:id/timeline - timeline de habilidades (CON SKILL)
 const getPlayerSkillsTimeline = async (req, res) => {
   try {
     const { id } = req.params;
-    const { skill } = req.query; // ejemplo: 'pace', 'shooting', etc.
+    const { skill = 'overall' } = req.query;
 
-    if (!skill) {
-      return res.status(400).json({
-        error: 'Parametro skill requerido',
-        code: 'SKILL_REQUIRED'
-      });
-    }
+    const validSkills = [
+      'overall', 'pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic',
+      'attacking_finishing', 'attacking_heading_accuracy', 'skill_dribbling',
+      'defending_marking', 'defending_standing_tackle', 'goalkeeping_diving'
+    ];
 
-    const validSkills = ['pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic', 'overall'];
     if (!validSkills.includes(skill)) {
       return res.status(400).json({
-        error: 'Skill no valido',
+        error: 'Skill no válido',
         code: 'INVALID_SKILL'
       });
     }
 
+    // obtener el jugador por ID para saber su nombre
+    const currentPlayer = await Player.findByPk(id);
+    
+    if (!currentPlayer) {
+      return res.status(404).json({
+        error: 'Jugador no encontrado',
+        code: 'PLAYER_NOT_FOUND'
+      });
+    }
+
+    // buscar todas las versiones por nombre
     const playerVersions = await Player.findAll({
       where: { 
-        long_name: { [Op.like]: `%${id}%` } // buscar por nombre (simplificado)
+        long_name: currentPlayer.long_name
       },
-      attributes: ['fifa_version', 'overall', 'pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic', 'age'],
+      attributes: [
+        'id', 'fifa_version', 'overall', 'pace', 'shooting', 'passing', 
+        'dribbling', 'defending', 'physic', 'age',
+        'attacking_finishing', 'attacking_heading_accuracy', 'skill_dribbling',
+        'defending_marking', 'defending_standing_tackle', 'goalkeeping_diving'
+      ],
       order: [['fifa_version', 'ASC']]
     });
 
+    if (playerVersions.length === 0) {
+      return res.status(404).json({
+        error: 'No se encontraron versiones del jugador',
+        code: 'VERSIONS_NOT_FOUND'
+      });
+    }
+
+    console.log(`Encontradas ${playerVersions.length} versiones para ${currentPlayer.long_name}`);
+
     const timeline = playerVersions.map(version => ({
+      id: version.id,
       year: version.fifa_version,
       value: version[skill],
-      age: version.age,
-      overall: version.overall
+      overall: version.overall,
+      age: version.age
     }));
 
     res.status(200).json({
-      playerName: id,
+      playerName: currentPlayer.long_name,
       skill,
-      timeline
+      timeline,
+      totalVersions: playerVersions.length,
+      yearsRange: {
+        min: playerVersions[0].fifa_version,
+        max: playerVersions[playerVersions.length - 1].fifa_version
+      }
     });
 
   } catch (error) {
@@ -287,7 +348,7 @@ const getPlayerSkillsTimeline = async (req, res) => {
   }
 };
 
-// POST /api/players/import - importar jugadores desde CSV
+// POST /api/players/import/csv - importar jugadores desde CSV
 const importPlayersFromCSV = async (req, res) => {
   try {
     if (!req.file) {

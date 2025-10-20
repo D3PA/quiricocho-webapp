@@ -41,7 +41,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// rutas públicas
+// rutas publicas
 app.get('/api/public/info', (req, res) => {
   res.status(200).json({ 
     message: 'Quiricocho Backend - Sistema de gestion de jugadores de FIFA',

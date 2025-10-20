@@ -7,10 +7,12 @@ import { MatCardModule } from '@angular/material/card';
 import { trigger, transition, style, animate } from '@angular/animations';
 
 import { PlayersService } from '../../services/players.service';
+import { UtilsService } from '../../services/utils.service'; 
 import { Player } from '../../interfaces/player';
 
 interface ProcessedPlayer extends Player {
   imageUrl: string;
+  mainPosition: string; 
 }
 
 @Component({
@@ -62,30 +64,15 @@ export class DashboardComponent implements OnInit {
     }
   ];
 
-  // versiones de FIFA para el slider
-  fifaVersions: string[] = ['23', '22', '21', '20', '19'];  // es posible agregar mas versiones 
+  fifaVersions: string[] = ['23', '22', '21', '20', '19'];
   currentVersion: string = '23';
   versionData: Map<string, ProcessedPlayer[]> = new Map();
   isLoading = true;
   private autoSlideInterval: any;
 
-  // mapeo de imagenes para jugadores top
-  private playerImageMappings: [number[], string][] = [
-    [[143051, 123812, 104925, 86442, 68357, 50429, 32863, 16183, 1], 'assets/images/players/top/messi.png'],
-    [[143056, 123814, 104926, 86443, 68356, 50428, 32862, 16184, 2], 'assets/images/players/top/ronaldo.png'],
-    [[143055, 123818, 104936, 86464, 68412, 50624, 37486], 'assets/images/players/top/mbappe.png'],
-    [[143053, 123813, 104927, 86456, 68368, 50433, 32870, 16205, 19], 'assets/images/players/top/lewandowski.png'],
-    [[143054, 123816, 104929, 86446, 68363, 50446, 32890, 16219, 203], 'assets/images/players/top/debruyne.png'],
-    [[143059, 123827, 104932, 86450, 68458, 50607, 33525, 1118], 'assets/images/players/top/vandijk.png'],
-    [[143061, 123815, 104928, 86444, 68358, 50432, 32866, 16193, 30], 'assets/images/players/top/neymar.png'],
-    [[143052, 123823, 104939, 86484, 68475, 50478, 32895, 16210, 35], 'assets/images/players/top/benzema.png'],
-    [[143064, 123817, 104930, 86447, 68370, 50459, 32907, 16445, 662], 'assets/images/players/top/oblak.png'],
-    [[143151, 123887, 104945, 86445, 68362, 50437, 32888, 16189, 12], 'assets/images/players/top/hazard.png'],
-    [[143083, 123918, 104981, 86458, 68364, 50438, 32871, 16220, 98], 'assets/images/players/top/degea.png']
-  ];
-
   constructor(
     private playersService: PlayersService,
+    private utilsService: UtilsService, 
     private router: Router
   ) {}
 
@@ -112,7 +99,8 @@ export class DashboardComponent implements OnInit {
         next: (response) => {
           const processedPlayers = response.players.map(player => ({
             ...player,
-            imageUrl: this.getPlayerImage(player)
+            imageUrl: this.utilsService.getPlayerImage(player), // usar UtilsService nuevo update
+            mainPosition: this.utilsService.getMainPosition(player) // usar UtilsService nuevo update
           }));
           
           this.versionData.set(version, processedPlayers);
@@ -127,7 +115,6 @@ export class DashboardComponent implements OnInit {
           console.error(`Error cargando jugadores de FIFA ${version}:`, error);
           loadedVersions++;
           
-          // si hay error, simplemente poner array vacio
           this.versionData.set(version, []);
           
           if (loadedVersions === totalVersions) {
@@ -168,7 +155,7 @@ export class DashboardComponent implements OnInit {
   startAutoSlide(): void {
     this.autoSlideInterval = setInterval(() => {
       this.nextVersion();
-    }, 5000); // 5 segundos
+    }, 5000);
   }
 
   stopAutoSlide(): void {
@@ -182,48 +169,19 @@ export class DashboardComponent implements OnInit {
     this.startAutoSlide();
   }
 
-  private getPlayerImage(player: Player): string {
-    // buscar en el mapeo de jugadores top
-    for (const [ids, imagePath] of this.playerImageMappings) {
-      if (ids.includes(player.id)) {
-        return imagePath;
-      }
-    }
+  // metodo mejorado usando UtilsService para colores consistentes
+  getPlayerStats(player: Player): { name: string; value: number; color: string }[] {
+    const relevantStats = this.utilsService.getRelevantStats(player);
     
-    // para otros jugadores, usar imagen generica
-    return 'assets/images/players/default-player.png';
+    return relevantStats.slice(0, 4);
   }
 
-  getPlayerStats(player: Player): any[] {
-    const isGoalkeeper = player.player_positions?.includes('GK'); 
-    const isDefender = player.player_positions?.includes('CB') || player.player_positions?.includes('RB') || player.player_positions?.includes('LB');
-    
-    if (isGoalkeeper) {
-      return [
-        { name: 'Paradas', value: player.goalkeeping_diving || 85 },
-        { name: 'Reflejos', value: player.goalkeeping_reflexes || 88 },
-        { name: 'Juego aéreo', value: player.goalkeeping_positioning || 82 },
-        { name: 'Salidas', value: player.goalkeeping_handling || 80 }
-      ];
-    } else if (isDefender) {
-      return [
-        { name: 'Defensa', value: player.defending || 0 },
-        { name: 'Físico', value: player.physic || 0 },
-        { name: 'Ritmo', value: player.pace || 0 },
-        { name: 'Pase', value: player.passing || 0 }
-      ];
-    } else {
-      return [
-        { name: 'Ritmo', value: player.pace || 0 },
-        { name: 'Tiro', value: player.shooting || 0 },
-        { name: 'Pase', value: player.passing || 0 },
-        { name: 'Regate', value: player.dribbling || 0 }
-      ];
-    }
+  getOverallColor(overall: number): string {
+    return this.utilsService.getStatColor(overall);
   }
 
   viewPlayer(playerId: number): void {
-    this.router.navigate(['/players', playerId]);
+    this.router.navigate(['/player', playerId]); 
   }
 
   playVideo(): void {
