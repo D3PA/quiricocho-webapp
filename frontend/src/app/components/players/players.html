@@ -71,6 +71,24 @@
             <span class="results-count">{{ filteredPlayers.length }} jugadores</span>
           </h2>
           <div class="results-actions">
+            <!-- BOTON EXPORTAR CSV -->
+            <button 
+              mat-raised-button 
+              color="accent"
+              (click)="exportToCSV()"
+              [disabled]="isExporting || filteredPlayers.length === 0"
+              [class.exporting]="isExporting"
+              class="export-btn rounded-btn"
+              matTooltip="Descargar todos los datos filtrados en formato CSV"
+              matTooltipPosition="above"
+            >
+              <mat-icon>{{ isExporting ? 'autorenew' : 'file_download' }}</mat-icon>
+              {{ isExporting ? 'Exportando...' : 'Exportar CSV' }}
+              <span class="export-count" *ngIf="!isExporting && filteredPlayers.length > 0">
+                ({{ filteredPlayers.length }})
+              </span>
+            </button>
+
             <button 
               *ngIf="!showAllResults && allResults.length > 10"
               mat-raised-button 
@@ -215,6 +233,10 @@
               <div class="tip-item">
                 <span class="tip-number rounded-badge">3</span>
                 <p>Haz clic en cualquier jugador para ver su <strong>perfil completo</strong></p>
+              </div>
+              <div class="tip-item">
+                <span class="tip-number rounded-badge">4</span>
+                <p>Exporta los resultados a <strong>CSV</strong> para análisis externos</p>
               </div>
             </div>
           </div>

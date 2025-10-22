@@ -60,13 +60,14 @@ export class PlayersService {
     return this.http.get(`${this.apiUrl}/${playerId}/timeline?skill=${skill}`);
   }
 
-  exportToCSV(filters: PlayerFilters = {}): Observable<Blob> {
+  exportCSV(filters: PlayerFilters = {}): Observable<Blob> {
     let params = new HttpParams();
     
     if (filters.search) params = params.set('search', filters.search);
     if (filters.club) params = params.set('club', filters.club);
     if (filters.position) params = params.set('position', filters.position);
     if (filters.nationality) params = params.set('nationality', filters.nationality);
+    if (filters.fifa_version) params = params.set('fifa_version', filters.fifa_version);
 
     return this.http.get(`${this.apiUrl}/export/csv`, { 
       params, 

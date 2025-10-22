@@ -225,45 +225,88 @@ const createPlayer = async (req, res) => {
   }
 };
 
-// GET /api/players/export/csv - exportar jugadores a CSV
+// GET /api/players/export/csv - exportar jugadores a CSV (MEJORADO)
 const exportPlayersToCSV = async (req, res) => {
   try {
-    const { search = '', club = '', position = '', nationality = '' } = req.query;
+    const { 
+      search = '', 
+      club = '', 
+      position = '', 
+      nationality = '',
+      fifa_version = '' 
+    } = req.query;
 
-    // construir condiciones (igual que getPlayers) 
     const whereConditions = {};
-    if (search) whereConditions.long_name = { [Op.like]: `%${search}%` };
-    if (club) whereConditions.club_name = { [Op.like]: `%${club}%` };
-    if (position) whereConditions.player_positions = { [Op.like]: `%${position}%` };
-    if (nationality) whereConditions.nationality_name = { [Op.like]: `%${nationality}%` };
 
+    if (search) {
+      whereConditions[Op.or] = [
+        { long_name: { [Op.like]: `%${search}%` } },
+        { club_name: { [Op.like]: `%${search}%` } },
+        { player_positions: { [Op.like]: `%${search}%` } },
+        { nationality_name: { [Op.like]: `%${search}%` } }
+      ];
+    }
+
+    if (club && !search) whereConditions.club_name = { [Op.like]: `%${club}%` };
+    if (position && !search) whereConditions.player_positions = { [Op.like]: `%${position}%` };
+    if (nationality && !search) whereConditions.nationality_name = { [Op.like]: `%${nationality}%` };
+    if (fifa_version) whereConditions.fifa_version = fifa_version;
+
+    // OBTENER TODOS LOS CAMPOS POSIBLES
     const players = await Player.findAll({
       where: whereConditions,
-      attributes: [
-        'long_name', 'player_positions', 'club_name', 'nationality_name',
-        'overall', 'age', 'pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic'
-      ]
+      attributes: { 
+        exclude: ['createdAt', 'updatedAt']
+      },
+      limit: 10000 // limite para no sobrecargar
     });
 
-    // convertir a CSV usando 'xlsx'
-    const XLSX = require('xlsx');
-    const worksheet = XLSX.utils.json_to_sheet(players);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Jugadores');
-    
-    // generar buffer
-    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'csv' });
+    console.log(`Exportando ${players.length} jugadores con todos los campos`);
 
-    // configurar headers para descarga
-    res.setHeader('Content-Disposition', 'attachment; filename=jugadores.csv'); 
-    res.setHeader('Content-Type', 'text/csv'); 
+    // convertir a CSV usando 'xlsx' - MEJORADO
+    const XLSX = require('xlsx');
+    
+    // preparar datos para CSV
+    const csvData = players.map(player => {
+      const playerData = player.get({ plain: true });
+      
+      Object.keys(playerData).forEach(key => {
+        if (playerData[key] === null || playerData[key] === undefined) {
+          playerData[key] = '';
+        } else {
+          playerData[key] = String(playerData[key]);
+        }
+      });
+      
+      return playerData;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(csvData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Jugadores_FIFA');
+    
+    // generar buffer con encoding
+    const buffer = XLSX.write(workbook, { 
+      type: 'buffer', 
+      bookType: 'csv',
+      bookSST: false 
+    });
+
+    // configurar headers para descarga con encoding correcto
+    const filename = `jugadores_fifa_${search || 'completo'}_${new Date().toISOString().split('T')[0]}.csv`;
+    
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Length', buffer.length);
+    
     res.send(buffer);
 
   } catch (error) {
     console.error('Error exportando CSV:', error);
     res.status(500).json({
-      error: 'Error interno del servidor',
-      code: 'CSV_EXPORT_ERROR'
+      error: 'Error interno del servidor al exportar CSV',
+      code: 'CSV_EXPORT_ERROR',
+      details: error.message
     });
   }
 };

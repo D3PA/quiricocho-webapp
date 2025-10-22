@@ -10,12 +10,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog } from '@angular/material/dialog';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 
 import { PlayersService } from '../../services/players.service';
 import { UtilsService } from '../../services/utils.service';
-import { Player } from '../../interfaces/player';
+import { Player, PlayerFilters } from '../../interfaces/player';
+import { ExportCSVModalComponent, ExportCSVData } from '../export-csv-modal/export-csv-modal';
 
 interface ProcessedPlayer extends Player {
   imageUrl: string;
@@ -73,6 +75,7 @@ export class PlayersComponent implements OnInit {
   allResults: ProcessedPlayer[] = [];
   isLoading: boolean = false;
   isSearching: boolean = false;
+  isExporting: boolean = false;
   showAllResults: boolean = false;
   searchPerformed: boolean = false;
 
@@ -93,7 +96,8 @@ export class PlayersComponent implements OnInit {
     private fb: FormBuilder,
     private playersService: PlayersService,
     public utilsService: UtilsService, 
-    private router: Router
+    private router: Router,
+    private dialog: MatDialog
   ) {
     this.searchForm = this.fb.group({
       searchTerm: [''],
@@ -102,18 +106,7 @@ export class PlayersComponent implements OnInit {
   }
 
   ngOnInit() {
-      this.playersService.searchPlayers('messi').subscribe({
-    next: (players) => {
-      console.log('Datos que llegan:', players);
-      if (players.length > 0) {
-        console.log('Primer jugador:', players[0]);
-        console.log('Tiene potential?', 'potential' in players[0]);
-        console.log('Tiene attacking_finishing?', 'attacking_finishing' in players[0]);
-      }
-    },
-    error: (error) => console.error('Error debug:', error)
-  });
-    // busqueda en tiempo real con debounce
+    // busqueda en tiempo real 
     this.searchForm.get('searchTerm')?.valueChanges
       .pipe(
         debounceTime(400),
@@ -222,5 +215,89 @@ export class PlayersComponent implements OnInit {
     this.allResults = [];
     this.showAllResults = false;
     this.searchPerformed = false;
+  }
+
+  exportToCSV() {
+    // mostrar modal de confirmacion
+    const dialogRef = this.dialog.open(ExportCSVModalComponent, {
+      width: '600px',
+      data: {
+        totalPlayers: this.filteredPlayers.length,
+        searchTerm: this.searchForm.get('searchTerm')?.value,
+        fifaVersion: this.searchForm.get('fifaVersion')?.value,
+        samplePlayers: this.filteredPlayers
+      } as ExportCSVData
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.performCSVExport();
+      }
+    });
+  }
+
+  private getCurrentFilters(): PlayerFilters {
+    const filters: PlayerFilters = {};
+    const searchTerm = this.searchForm.get('searchTerm')?.value;
+    const fifaVersion = this.searchForm.get('fifaVersion')?.value;
+
+    if (searchTerm) filters.search = searchTerm;
+    if (fifaVersion && fifaVersion !== 'all') filters.fifa_version = fifaVersion;
+
+    return filters;
+  }
+
+  private performCSVExport() {
+    this.isExporting = true;
+    
+    const filters = this.getCurrentFilters();
+
+    this.playersService.exportCSV(filters).subscribe({
+      next: (blob: Blob) => {
+        // crear nombre de archivo 
+        const timestamp = new Date().toISOString().split('T')[0];
+        let filename = `quiricocho_fifa_jugadores_${timestamp}`;
+        
+        const searchTerm = this.searchForm.get('searchTerm')?.value;
+        const fifaVersion = this.searchForm.get('fifaVersion')?.value;
+
+        if (searchTerm) {
+          filename = `quiricocho_fifa_jugadores_${searchTerm.replace(/\s+/g, '_')}_${timestamp}`;
+        } else if (fifaVersion && fifaVersion !== 'all') {
+          filename = `quiricocho_fifa_jugadores_${fifaVersion}_${timestamp}`;
+        }
+        
+        filename += '.csv';
+
+        // crear descarga del archivo
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        this.isExporting = false;
+        
+        this.showExportSuccess(filename);
+      },
+      error: (error) => {
+        console.error('Error exportando CSV:', error);
+        this.isExporting = false;
+        this.showExportError();
+      }
+    });
+  }
+
+  private showExportSuccess(filename: string) {
+    console.log(`CSV exportado exitosamente: ${filename}`);
+    alert(`CSV exportado exitosamente: ${filename}`);
+  }
+
+  private showExportError() {
+    console.error('Error al exportar CSV');
+    alert('Error al exportar el archivo CSV. Por favor, intenta nuevamente.');
   }
 }

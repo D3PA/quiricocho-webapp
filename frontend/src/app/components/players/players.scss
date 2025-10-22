@@ -57,22 +57,18 @@
       .search-controls {
         display: flex;
         gap: 16px;
-        align-items: flex-start; // cambiado de center a flex-start para mejor alineacion
-        flex-wrap: nowrap;
+        align-items: flex-start;
+        flex-wrap: wrap;
         
-        .search-input-container {
+        .search-field {
           flex: 2;
-          min-width: 400px;
-          
-          .search-field {
-            width: 100%;
-          }
+          min-width: 300px;
         }
         
         .version-field {
           flex: 1;
-          width: 280px;
-          min-width: 280px;
+          min-width: 200px;
+          max-width: 280px;
         }
         
         .clear-btn {
@@ -80,8 +76,8 @@
           white-space: nowrap;
           flex-shrink: 0;
           min-width: 120px;
-          margin-top: 0; 
-          align-self: flex-start; 
+          margin-top: 0;
+          align-self: flex-start;
         }
       }
     }
@@ -256,12 +252,53 @@
       }
       
       .results-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+
+        .export-btn {
+          border-color: var(--accent-color) !important;
+          color: var(--accent-color) !important;
+          font-weight: 600;
+          position: relative;
+          
+          &:hover:not(:disabled) {
+            background: rgba(255, 152, 0, 0.1) !important;
+          }
+          
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+
+          .export-count {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-left: 4px;
+          }
+          
+          &:disabled .export-count {
+            opacity: 0.5;
+          }
+        }
+
         .view-all-btn {
-          border-radius: 8px;
           font-weight: 600;
           
           &:hover {
             background: rgba(0, 255, 136, 0.1);
+          }
+        }
+
+        @media (max-width: 768px) {
+          flex-direction: column;
+          width: 100%;
+          
+          .export-btn,
+          .view-all-btn {
+            width: 100%;
+            justify-content: center;
           }
         }
       }
@@ -695,47 +732,48 @@
   }
 }
 
-// RESPONSIVE MEJORADO
-@media (max-width: 1200px) {
+// MEJORAS RESPONSIVE 
+@media (max-width: 1024px) {
   .search-section .search-controls {
-    .search-input-container {
-      min-width: 350px;
+    gap: 12px;
+    
+    .search-field {
+      min-width: 250px !important;
+      flex: 1 1 250px;
     }
     
     .version-field {
-      width: 250px;
-      min-width: 250px;
-    }
-  }
-}
-
-@media (max-width: 1024px) {
-  .search-section .search-controls {
-    .search-input-container {
-      min-width: 300px;
-    }
-
-    .version-field {
-      min-width: 200px;
-      max-width: 200px;
+      min-width: 180px !important;
+      max-width: 220px !important;
+      flex: 1 1 180px;
     }
     
     .clear-btn {
-      min-width: 110px;
+      min-width: 100px !important;
+      flex: 0 1 auto;
     }
   }
 }
 
 @media (max-width: 768px) {
   .search-section .search-controls {
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 12px;
     
-    .search-input-container,
+    .search-field,
     .version-field,
     .clear-btn {
       min-width: 100% !important;
       max-width: 100% !important;
       flex: 1 1 100% !important;
+      width: 100%;
+    }
+    
+    .search-field,
+    .version-field {
+      ::ng-deep .mat-mdc-form-field {
+        width: 100%;
+      }
     }
   }
 
@@ -759,10 +797,26 @@
 }
 
 @media (max-width: 480px) {
-  .search-section .search-controls {
-    gap: 12px;
+  .search-section {
+    .search-container {
+      padding: 0 15px;
+    }
+    
+    .search-controls {
+      gap: 10px;
+    }
   }
   
+  .results-actions {
+    gap: 8px;
+    
+    .export-btn,
+    .view-all-btn {
+      font-size: 0.9em;
+      height: 44px;
+    }
+  }
+
   .initial-state .initial-content .welcome-section {
     .quick-tips {
       padding: 25px 20px;
@@ -778,6 +832,75 @@
           font-size: 1em;
         }
       }
+    }
+  }
+}
+
+::ng-deep .mat-mdc-tooltip {
+  font-size: 0.9em;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid var(--border-color);
+}
+
+// BOTON EXPORTAR CSV
+.export-btn {
+  background: #ff9800 !important;
+  color: white !important;
+  border: none !important;
+  font-weight: 700 !important;
+  padding: 0 20px !important;
+  height: 48px !important;
+  transition: all 0.3s ease !important;
+  
+  &:hover:not(:disabled) {
+    background: transparent !important;
+    color: #ff9800 !important;
+    border: 2px solid #ff9800 !important;
+  }
+  
+  &:disabled {
+    background: #6c757d !important;
+    cursor: not-allowed;
+  }
+
+  .export-count {
+    background: rgba(255, 255, 255, 0.3);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: 700;
+    margin-left: 8px;
+    transition: all 0.3s ease;
+  }
+  
+  &:hover:not(:disabled) .export-count {
+    background: rgba(255, 152, 0, 0.2);
+    color: #ff9800;
+  }
+  
+  mat-icon {
+    margin-right: 8px;
+    font-size: 1.2em;
+    width: 1.2em;
+    height: 1.2em;
+    transition: color 0.3s ease;
+  }
+  
+  &:hover:not(:disabled) mat-icon {
+    color: #ff9800 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .export-btn {
+    height: 44px !important;
+    padding: 0 16px !important;
+    font-size: 0.9em;
+    
+    .export-count {
+      font-size: 0.7em;
+      padding: 1px 6px;
+      margin-left: 6px;
     }
   }
 }
