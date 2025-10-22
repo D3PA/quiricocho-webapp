@@ -130,14 +130,39 @@
     <router-outlet></router-outlet>
   </main>
 
-  <!-- Footer -->
+  <!-- Footer Mejorado -->
   <footer class="app-footer">
     <div class="footer-content">
-      <div class="footer-logo">
-        <img src="assets/images/logo.webp" alt="Quiricocho" class="footer-logo-img" style="height: 30px;">
+      <!-- Logo xAcademy -->
+      <div class="footer-logos">
+        <a href="https://technologywithpurpose.org/xacademy/" target="_blank" class="footer-logo-link">
+        <img src="assets/images/logo-xa.webp" alt="xAcademy" class="footer-logo-img">
+        </a>
       </div>
-      <div class="footer-copy">
-        &copy; 2025 Quiricocho. Todos los derechos reservados.
+
+      <!-- Informacion central -->
+      <div class="footer-info">
+        <p class="footer-disclaimer">
+          Quiricocho es un proyecto independiente no afiliado, patrocinado ni aprobado por EA Sports™ o Electronic Arts Inc.<br>
+          Todos los nombres, logotipos y marcas registradas pertenecen a sus respectivos dueños.
+        </p>
+        <div class="footer-copy">
+          © 2025 Quiricocho. Todos los derechos reservados.
+        </div>
+      </div>
+
+      <!-- Logo Quiricocho -->
+      <div class="footer-logos">
+        <a [routerLink]="authService.isAuthenticated() ? '/dashboard' : '/login'" class="footer-logo-link">
+        <img src="assets/images/logo.webp" alt="Quiricocho" class="footer-logo-img">
+        </a>
+      </div>
+
+      <!-- Creditos :) -->
+      <div class="footer-bottom">
+        <div class="footer-credits">
+          Desarrollado por Rodrigo Muñoz para xAcademy 💜
+        </div>
       </div>
     </div>
   </footer>
