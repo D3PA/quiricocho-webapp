@@ -20,7 +20,7 @@ const getPlayers = async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    // construir condiciones de busqueda MEJORADO
+    // Construir condiciones de busqueda
     const whereConditions = {};
 
     if (search) {
@@ -56,7 +56,7 @@ const getPlayers = async (req, res) => {
       order = [['overall', 'DESC']]; 
     }
 
-    // OBTENER TODOS LOS CAMPOS
+    // Obtener todos los campos
     const { count, rows: players } = await Player.findAndCountAll({
       where: whereConditions,
       limit: parseInt(limit),
@@ -112,7 +112,7 @@ const getPlayerById = async (req, res) => {
   }
 };
 
-// PUT /api/players/:id - actualizar jugador (MEJORADO)
+// PUT /api/players/:id - actualizar jugador
 const updatePlayer = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -127,7 +127,7 @@ const updatePlayer = async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
 
-    // verificar que el usuario es admin
+    // Verificar que el usuario es admin
     if (!req.user || !req.user.is_admin) {
       return res.status(403).json({
         error: 'No tienes permisos para editar jugadores',
@@ -144,15 +144,15 @@ const updatePlayer = async (req, res) => {
       });
     }
 
-    // campos que se pueden actualizar
+    // Campos que se pueden actualizar
     const allowedFields = [
       'long_name', 'player_positions', 'club_name', 'nationality_name',
       'overall', 'potential', 'value_eur', 'wage_eur', 'age', 'height_cm', 'weight_kg',
       'preferred_foot', 'weak_foot', 'skill_moves', 'international_reputation',
       'work_rate', 'body_type', 'player_traits',
-      // habilidades principales
+      // Habilidades principales
       'pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic',
-      // habilidades específicas
+      // Habilidades específicas
       'attacking_crossing', 'attacking_finishing', 'attacking_heading_accuracy',
       'attacking_short_passing', 'attacking_volleys', 'skill_dribbling',
       'skill_curve', 'skill_fk_accuracy', 'skill_long_passing', 'skill_ball_control',
@@ -166,7 +166,7 @@ const updatePlayer = async (req, res) => {
       'goalkeeping_reflexes', 'goalkeeping_speed'
     ];
 
-    // filtrar solo los campos permitidos
+    // Filtrar solo los campos permitidos
     const filteredUpdateData = {};
     Object.keys(updateData).forEach(key => {
       if (allowedFields.includes(key)) {
@@ -225,7 +225,7 @@ const createPlayer = async (req, res) => {
   }
 };
 
-// GET /api/players/export/csv - exportar jugadores a CSV (MEJORADO)
+// GET /api/players/export/csv - exportar jugadores a CSV
 const exportPlayersToCSV = async (req, res) => {
   try {
     const { 
@@ -252,21 +252,19 @@ const exportPlayersToCSV = async (req, res) => {
     if (nationality && !search) whereConditions.nationality_name = { [Op.like]: `%${nationality}%` };
     if (fifa_version) whereConditions.fifa_version = fifa_version;
 
-    // OBTENER TODOS LOS CAMPOS POSIBLES
+    // Obtener todos los campos posibles
     const players = await Player.findAll({
       where: whereConditions,
       attributes: { 
         exclude: ['createdAt', 'updatedAt']
       },
-      limit: 10000 // limite para no sobrecargar
+      limit: 10000 // Limite para no sobrecargar
     });
 
-    console.log(`Exportando ${players.length} jugadores con todos los campos`);
-
-    // convertir a CSV usando 'xlsx' - MEJORADO
+    // Convertir a CSV usando 'xlsx'
     const XLSX = require('xlsx');
     
-    // preparar datos para CSV
+    // Preparar datos para CSV
     const csvData = players.map(player => {
       const playerData = player.get({ plain: true });
       
@@ -285,14 +283,14 @@ const exportPlayersToCSV = async (req, res) => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Jugadores_FIFA');
     
-    // generar buffer con encoding
+    // Generar buffer con encoding
     const buffer = XLSX.write(workbook, { 
       type: 'buffer', 
       bookType: 'csv',
       bookSST: false 
     });
 
-    // configurar headers para descarga con encoding correcto
+    // Configurar headers para descarga con encoding correcto
     const filename = `jugadores_fifa_${search || 'completo'}_${new Date().toISOString().split('T')[0]}.csv`;
     
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
@@ -311,7 +309,7 @@ const exportPlayersToCSV = async (req, res) => {
   }
 };
 
-// GET /api/players/:id/timeline - timeline de habilidades (CON SKILL)
+// GET /api/players/:id/timeline - timeline de habilidades
 const getPlayerSkillsTimeline = async (req, res) => {
   try {
     const { id } = req.params;
@@ -330,7 +328,7 @@ const getPlayerSkillsTimeline = async (req, res) => {
       });
     }
 
-    // obtener el jugador por ID para saber su nombre
+    // Obtener el jugador por ID para saber su nombre
     const currentPlayer = await Player.findByPk(id);
     
     if (!currentPlayer) {
@@ -340,7 +338,7 @@ const getPlayerSkillsTimeline = async (req, res) => {
       });
     }
 
-    // buscar todas las versiones por nombre
+    // Buscar todas las versiones por nombre
     const playerVersions = await Player.findAll({
       where: { 
         long_name: currentPlayer.long_name
@@ -360,8 +358,6 @@ const getPlayerSkillsTimeline = async (req, res) => {
         code: 'VERSIONS_NOT_FOUND'
       });
     }
-
-    console.log(`Encontradas ${playerVersions.length} versiones para ${currentPlayer.long_name}`);
 
     const timeline = playerVersions.map(version => ({
       id: version.id,
@@ -401,38 +397,50 @@ const importPlayersFromCSV = async (req, res) => {
       });
     }
 
-    console.log(`Procesando archivo: ${req.file.originalname}`);
-    console.log(`Tamaño: ${(req.file.size / 1024 / 1024).toFixed(2)}MB`);
-    console.log(`Storage: ${req.file.buffer ? 'Memory' : 'Disk'}`);
-
     const XLSX = require('xlsx');
     let workbook;
+    let playersData = [];
 
-    // manejar tanto memory storage como disk storage
-    if (req.file.buffer) {
-      // archivo en memoria
-      workbook = XLSX.read(req.file.buffer, { 
-        type: 'buffer',
-        cellDates: true,
-        cellText: false,
-        cellNF: false 
-      });
-    } else {
-      // archivo en disco - leer desde path
-      workbook = XLSX.readFile(req.file.path, {
-        cellDates: true,
-        cellText: false,
-        cellNF: false
+    try {
+      // manejar tanto memory storage como disk storage
+      if (req.file.buffer) {
+        // archivo en memoria
+        workbook = XLSX.read(req.file.buffer, { 
+          type: 'buffer',
+          cellDates: true,
+          cellText: false,
+          cellNF: false 
+        });
+      } else {
+        // archivo en disco - leer desde path
+        workbook = XLSX.readFile(req.file.path, {
+          cellDates: true,
+          cellText: false,
+          cellNF: false
+        });
+      }
+      
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      playersData = XLSX.utils.sheet_to_json(worksheet);
+
+    } catch (parseError) {
+      console.error('Error parseando archivo:', parseError);
+      return res.status(400).json({
+        error: 'Error leyendo el archivo. Verifica que sea un CSV o Excel válido.',
+        code: 'FILE_PARSE_ERROR',
+        details: parseError.message
       });
     }
-    
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const playersData = XLSX.utils.sheet_to_json(worksheet);
 
-    console.log(`Encontrados ${playersData.length} registros en el CSV`);
+    if (playersData.length === 0) {
+      return res.status(400).json({
+        error: 'El archivo está vacío o no contiene datos válidos',
+        code: 'EMPTY_FILE'
+      });
+    }
 
     // procesar en lotes
-    const batchSize = 1000;
+    const batchSize = 500;
     let importedCount = 0;
     let errors = [];
 
@@ -442,51 +450,71 @@ const importPlayersFromCSV = async (req, res) => {
       try {
         const processedPlayers = batch.map((player, index) => {
           try {
-            return {
-              ...player,
-              fifa_version: player.fifa_version || '2023',
-              fifa_update: player.fifa_update || 'Imported',
-              player_face_url: player.player_face_url || 'https://cdn.sofifa.net/players/notfound/0_240.png'
-            };
+            // limpiar y preparar datos
+            const cleanPlayer = {};
+            
+            // copiar todos los campos existentes
+            Object.keys(player).forEach(key => {
+              if (player[key] !== null && player[key] !== undefined && player[key] !== '') {
+                cleanPlayer[key] = player[key];
+              }
+            });
+
+            // campos por defecto si no existen
+            if (!cleanPlayer.fifa_version) cleanPlayer.fifa_version = '2023';
+            if (!cleanPlayer.fifa_update) cleanPlayer.fifa_update = 'Imported';
+            if (!cleanPlayer.player_face_url) {
+              cleanPlayer.player_face_url = 'https://cdn.sofifa.net/players/notfound/0_240.png';
+            }
+
+            return cleanPlayer;
           } catch (error) {
-            errors.push(`Error en registro ${i + index}: ${error.message}`);
+            const globalIndex = i + index;
+            errors.push(`Error en registro ${globalIndex}: ${error.message}`);
             return null;
           }
         }).filter(player => player !== null);
 
         if (processedPlayers.length > 0) {
-          const result = await Player.bulkCreate(processedPlayers, {
-            validate: false, // desactivar validacion para mejor performance
-            ignoreDuplicates: true,
-            logging: false
-          });
+          try {
+            const result = await Player.bulkCreate(processedPlayers, {
+              validate: false, // desactivar validacion para mejor performance
+              ignoreDuplicates: true,
+              logging: false
+            });
 
-          importedCount += result.length;
+            importedCount += result.length;
+          } catch (dbError) {
+            errors.push(`Lote ${Math.floor(i/batchSize) + 1}: ${dbError.message}`);
+          }
         }
-
-        console.log(`Lote ${Math.floor(i/batchSize) + 1}/${Math.ceil(playersData.length/batchSize)}: ${processedPlayers.length} jugadores`);
 
         // pequeña pausa para no saturar la DB
         if (i + batchSize < playersData.length) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 50));
         }
 
       } catch (batchError) {
-        console.error(`Error en lote ${Math.floor(i/batchSize) + 1}:`, batchError.message);
         errors.push(`Lote ${Math.floor(i/batchSize) + 1}: ${batchError.message}`);
       }
     }
 
     // limpiar archivo temporal si estaba en disco
     if (req.file.path && !req.file.buffer) {
-      fs.unlinkSync(req.file.path);
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (cleanupError) {
+        console.error('Error eliminando archivo temporal:', cleanupError);
+      }
     }
 
+    const successRate = playersData.length > 0 ? ((importedCount / playersData.length) * 100).toFixed(1) + '%' : '0%';
+    
     const response = {
       message: `${importedCount} jugadores importados exitosamente`,
       imported: importedCount,
       totalInFile: playersData.length,
-      successRate: ((importedCount / playersData.length) * 100).toFixed(1) + '%'
+      successRate: successRate
     };
 
     if (errors.length > 0) {
@@ -499,7 +527,11 @@ const importPlayersFromCSV = async (req, res) => {
   } catch (error) {
     // limpiar archivo temporal en caso de error
     if (req.file && req.file.path && !req.file.buffer) {
-      fs.unlinkSync(req.file.path);
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (cleanupError) {
+        console.error('Error eliminando archivo temporal:', cleanupError);
+      }
     }
 
     console.error('Error importando CSV:', error);

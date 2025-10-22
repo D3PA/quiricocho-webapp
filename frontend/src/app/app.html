@@ -23,7 +23,7 @@
           <mat-icon>person_add</mat-icon>
           <span>Crear Jugador</span>
         </a>
-        <a class="nav-link" routerLink="/players/import" routerLinkActive="active" 
+        <a class="nav-link" routerLink="/players-import" routerLinkActive="active" 
            *ngIf="(authService.currentUser$ | async)?.is_admin">
           <mat-icon>file_upload</mat-icon>
           <span>Importar Jugadores</span>
@@ -130,7 +130,7 @@
     <router-outlet></router-outlet>
   </main>
 
-  <!-- Footer Mejorado -->
+  <!-- Footer mejorado -->
   <footer class="app-footer">
     <div class="footer-content">
       <!-- Logo xAcademy -->

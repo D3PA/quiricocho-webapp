@@ -22,7 +22,7 @@ const diskStorage = multer.diskStorage({
   }
 });
 
-// middleware inteligente que elige el storage segun el tamaño del archivo
+// middleware que elige el storage segun el tamaño del archivo
 const smartUpload = (req, res, next) => {
   // por defecto usar memoryStorage
   let storage = memoryStorage;
@@ -31,13 +31,12 @@ const smartUpload = (req, res, next) => {
   const contentLength = parseInt(req.headers['content-length']);
   if (contentLength && contentLength > 50 * 1024 * 1024) {
     storage = diskStorage;
-    console.log(`Usando diskStorage para archivo grande: ${(contentLength / 1024 / 1024).toFixed(2)}MB`);
   }
 
   const upload = multer({
     storage: storage,
     fileFilter: (req, file, cb) => {
-      const allowedMimes = [ // tipos de MIME permitidos
+      const allowedMimes = [
         'text/csv',
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -45,7 +44,7 @@ const smartUpload = (req, res, next) => {
       ];
       
       if (allowedMimes.includes(file.mimetype) || 
-          file.originalname.match(/\.(csv|xlsx|xls)$/i)) { 
+          file.originalname.match(/\.(csv|xlsx|xls)$/i)) {
         cb(null, true);
       } else {
         cb(new Error('Solo se permiten archivos CSV o Excel'), false);
@@ -54,7 +53,7 @@ const smartUpload = (req, res, next) => {
     limits: {
       fileSize: 200 * 1024 * 1024, // 200MB maximo permitido
     }
-  }).single('file');
+  }).single('csvFile'); 
 
   upload(req, res, (err) => {
     if (err) {

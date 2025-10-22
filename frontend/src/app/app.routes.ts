@@ -1,3 +1,4 @@
+// frontend/src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
 
@@ -33,6 +34,11 @@ export const routes: Routes = [
   { 
     path: 'player-edit/:id', 
     loadComponent: () => import('./components/player-edit/player-edit').then(c => c.PlayerEditComponent),
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'players-import', 
+    loadComponent: () => import('./components/players-import/players-import').then(c => c.PlayersImportComponent),
     canActivate: [AuthGuard]
   },
   { 

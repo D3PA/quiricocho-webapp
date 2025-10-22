@@ -14,7 +14,7 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
-// todas las rutas requieren autenticacion
+// Todas las rutas requieren autenticacion
 router.use(authenticateToken);
 
 /**
@@ -357,7 +357,7 @@ router.get('/:id/timeline', getPlayerSkillsTimeline);
  *           schema:
  *             type: object
  *             properties:
- *               file:
+ *               csvFile:
  *                 type: string
  *                 format: binary
  *                 description: Archivo CSV con datos de jugadores

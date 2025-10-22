@@ -1,0 +1,182 @@
+<div class="import-container">
+  <!-- Header -->
+  <div class="header-section">
+    <div class="header-content">
+      <h1 class="page-title">Importar Jugadores desde CSV</h1>
+      <p class="page-subtitle">Sube un archivo CSV para importar jugadores a la base de datos</p>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="import-content">
+    <!-- Panel de importacion -->
+    <mat-card class="import-card rounded-card">
+      <mat-card-content>
+        <div class="upload-section">
+          <!-- Zona de drop -->
+          <div 
+            class="drop-zone" 
+            [class.active]="isDragOver"
+            [class.has-file]="selectedFile"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (drop)="onDrop($event)"
+            (click)="onDropZoneClick()"
+          >
+            <div class="drop-content" *ngIf="!selectedFile">
+              <mat-icon class="upload-icon">cloud_upload</mat-icon>
+              <h3>Arrastra tu archivo CSV aquí</h3>
+              <p>o haz clic para seleccionar</p>
+              <input 
+                type="file" 
+                #fileInput
+                (change)="onFileSelected($event)"
+                accept=".csv,.xlsx,.xls"
+                hidden
+              >
+              <button 
+                mat-raised-button 
+                color="primary"
+                (click)="fileInput.click(); $event.stopPropagation()"
+                class="browse-btn"
+              >
+                <mat-icon>folder_open</mat-icon>
+                Seleccionar Archivo
+              </button>
+            </div>
+
+            <div class="file-info" *ngIf="selectedFile">
+              <mat-icon class="file-icon">description</mat-icon>
+              <div class="file-details">
+                <h4>{{ selectedFile.name }}</h4>
+                <p>{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</p>
+              </div>
+              <button 
+                mat-icon-button 
+                color="warn"
+                (click)="removeFile(); $event.stopPropagation()"
+                class="remove-btn"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Informacion del archivo -->
+          <div class="file-requirements" *ngIf="!selectedFile">
+            <h4>Requisitos del archivo:</h4>
+            <ul>
+              <li>Formato: CSV, Excel (.xlsx, .xls)</li>
+              <li>Tamaño máximo: <strong>200MB</strong></li>
+              <li>Estructura compatible con base de datos FIFA</li>
+              <li>Encoding recomendado: UTF-8</li>
+            </ul>
+          </div>
+
+          <!-- Progreso de importacion -->
+          <div class="progress-section" *ngIf="isImporting">
+            <div class="progress-info">
+              <h4>Importando jugadores...</h4>
+              <p>{{ importedCount }} de {{ totalRecords }} procesados</p>
+            </div>
+            <mat-progress-bar 
+              mode="determinate" 
+              [value]="progressPercentage"
+            ></mat-progress-bar>
+            <div class="progress-stats">
+              <span>{{ progressPercentage }}% completado</span>
+            </div>
+          </div>
+
+          <!-- Resultados de importacion -->
+          <div class="results-section" *ngIf="importResult">
+            <div 
+              class="result-card" 
+              [class.success]="importResult.imported > 0"
+              [class.warning]="importResult.errorCount > 0"
+            >
+              <mat-icon class="result-icon">
+                {{ importResult.imported > 0 ? 'check_circle' : 'warning' }}
+              </mat-icon>
+              <div class="result-content">
+                <h4>{{ importResult.message }}</h4>
+                <div class="result-stats">
+                  <span><strong>Importados:</strong> {{ importResult.imported }}</span>
+                  <span><strong>Total en archivo:</strong> {{ importResult.totalInFile }}</span>
+                  <span><strong>Tasa de éxito:</strong> {{ importResult.successRate }}</span>
+                  <span *ngIf="importResult.errorCount" class="error-count">
+                    <strong>Errores:</strong> {{ importResult.errorCount }}
+                  </span>
+                </div>
+                <p *ngIf="importResult.warnings" class="warning-text">
+                  {{ importResult.warnings }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions align="end">
+        <button 
+          mat-stroked-button 
+          routerLink="/players"
+          class="cancel-btn"
+        >
+          <mat-icon>arrow_back</mat-icon>
+          Volver a Jugadores
+        </button>
+        <button 
+          mat-raised-button 
+          color="primary"
+          (click)="importCSV()"
+          [disabled]="!selectedFile || isImporting"
+          class="import-btn"
+        >
+          <mat-icon>file_upload</mat-icon>
+          {{ isImporting ? 'Importando...' : 'Importar CSV' }}
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Panel de ayuda -->
+    <mat-card class="help-card rounded-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>help</mat-icon>
+        <mat-card-title>Guía de Importación</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="help-content">
+          <div class="help-item">
+            <div class="help-header">
+              <mat-icon>list_alt</mat-icon>
+              <h4>Estructura del CSV</h4>
+            </div>
+            <p>El archivo debe contener columnas compatibles con la base de datos de jugadores FIFA.</p>
+          </div>
+          <div class="help-item">
+            <div class="help-header">
+              <mat-icon>search</mat-icon>
+              <h4>Campos Requeridos</h4>
+            </div>
+            <p>Al menos: <code>long_name</code>, <code>player_positions</code>, <code>overall</code>, <code>fifa_version</code></p>
+          </div>
+          <div class="help-item">
+            <div class="help-header">
+              <mat-icon>flash_on</mat-icon>
+              <h4>Procesamiento</h4>
+            </div>
+            <p>Los archivos grandes (hasta 200MB) se procesan en lotes automáticamente.</p>
+          </div>
+          <div class="help-item">
+            <div class="help-header">
+              <mat-icon>analytics</mat-icon>
+              <h4>Resultados</h4>
+            </div>
+            <p>Se mostrará un resumen detallado del proceso de importación.</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

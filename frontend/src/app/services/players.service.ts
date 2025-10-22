@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpEventType } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Player, PlayersResponse, PlayerFilters } from '../interfaces/player';
@@ -72,6 +72,16 @@ export class PlayersService {
     return this.http.get(`${this.apiUrl}/export/csv`, { 
       params, 
       responseType: 'blob' 
+    });
+  }
+
+  importCSV(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('csvFile', file); 
+    
+    return this.http.post(`${this.apiUrl}/import/csv`, formData, {
+      reportProgress: true,
+      observe: 'events'
     });
   }
 }
