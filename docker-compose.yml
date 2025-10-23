@@ -1,3 +1,4 @@
+# docker-compose.yml
 services:
   mysql:
     image: mysql:8.0
@@ -37,6 +38,8 @@ services:
       - DB_PASSWORD=quiricocho_pass
       - DB_NAME=quiricocho_db
       - JWT_SECRET=quiricocho_jwt_secret_desarrollo_2025_xacademy
+      - JWT_EXPIRES_IN=24h
+      - FRONTEND_URL=http://localhost:4200
     depends_on:
       mysql:
         condition: service_healthy
@@ -46,6 +49,16 @@ services:
       - ./backend:/app
       - /app/node_modules
     command: npm run dev
+
+  frontend:
+    build: ./frontend
+    container_name: quiricocho_frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - quiricocho-network
 
 volumes:
   mysql_data:
