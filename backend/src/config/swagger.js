@@ -7,7 +7,7 @@ const options = {
     info: {
       title: 'Quiricocho API',
       version: '1.0.0',
-      description: 'API para gestion de jugadores de FIFA - Proyecto XAcademy',
+      description: 'API para gestion de jugadores de FIFA - Proyecto xAcademy',
       contact: {
         name: 'API Support',
         email: 'support@quiricocho.com'
@@ -15,8 +15,13 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
+        url: process.env.API_BASE_URL || 'http://localhost:3000',
         description: 'Servidor de desarrollo'
+      }
+    ],
+    security: [
+      {
+        bearerAuth: []
       }
     ],
     components: {
@@ -55,6 +60,10 @@ const options = {
               type: 'integer',
               description: 'Overall rating (0-100)'
             },
+            potential: {
+              type: 'integer',
+              description: 'Potencial del jugador (0-100)'
+            },
             age: {
               type: 'integer',
               description: 'Edad del jugador'
@@ -86,6 +95,43 @@ const options = {
             physic: {
               type: 'integer',
               description: 'Fisico'
+            },
+            value_eur: {
+              type: 'integer',
+              description: 'Valor de mercado en euros'
+            },
+            wage_eur: {
+              type: 'integer',
+              description: 'Salario semanal en euros'
+            },
+            preferred_foot: {
+              type: 'string',
+              enum: ['Right', 'Left'],
+              description: 'Pierna hábil'
+            },
+            weak_foot: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 5,
+              description: 'Rating de pierna mala (1-5 estrellas)'
+            },
+            skill_moves: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 5,
+              description: 'Skill moves (1-5 estrellas)'
+            },
+            player_face_url: {
+              type: 'string',
+              description: 'URL de la imagen del jugador'
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time'
             }
           }
         },
@@ -98,7 +144,19 @@ const options = {
             email: {
               type: 'string'
             },
+            name: {
+              type: 'string',
+              example: 'Rodrigo Muñoz'
+            },
+            is_admin: {
+              type: 'boolean',
+              example: false
+            },
             createdAt: {
+              type: 'string',
+              format: 'date-time'
+            },
+            updatedAt: {
               type: 'string',
               format: 'date-time'
             }
@@ -122,11 +180,50 @@ const options = {
               }
             }
           }
+        },
+        ImportResponse: {
+          type: 'object',
+          properties: {
+            message: { type: 'string' },
+            imported: { type: 'integer' },
+            totalInFile: { type: 'integer' },
+            successRate: { type: 'string' },
+            warnings: { type: 'string' },
+            errorCount: { type: 'integer' }
+          }
+        },
+        TimelineResponse: {
+          type: 'object',
+          properties: {
+            playerName: { type: 'string' },
+            skill: { type: 'string' },
+            timeline: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'integer' },
+                  year: { type: 'string' },
+                  value: { type: 'integer' },
+                  overall: { type: 'integer' },
+                  age: { type: 'integer' }
+                }
+              }
+            },
+            totalVersions: { type: 'integer' },
+            yearsRange: {
+              type: 'object',
+              properties: {
+                min: { type: 'string' },
+                max: { type: 'string' }
+              }
+            }
+          }
         }
       }
     }
   },
-  apis: ['./src/routes/*.js', './src/controllers/*.js']
+  apis: ['./src/routes/*.js']
 };
 
 const specs = swaggerJsdoc(options);

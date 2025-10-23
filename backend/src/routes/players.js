@@ -14,7 +14,7 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Todas las rutas requieren autenticacion
+// todas las rutas requieren autenticacion
 router.use(authenticateToken);
 
 /**
@@ -58,6 +58,24 @@ router.use(authenticateToken);
  *         schema:
  *           type: string
  *         description: Filtrar por nacionalidad
+ *       - in: query
+ *         name: fifa_version
+ *         schema:
+ *           type: string
+ *         description: Filtrar por version de FIFA
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           default: overall
+ *         description: Campo para ordenar
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *           default: DESC
+ *         description: Orden ascendente o descendente
  *     responses:
  *       200:
  *         description: Listado de jugadores
@@ -259,6 +277,11 @@ router.post('/', playerCreateValidation, createPlayer);
  *         schema:
  *           type: string
  *         description: Filtrar por nacionalidad
+ *       - in: query
+ *         name: fifa_version
+ *         schema:
+ *           type: string
+ *         description: Filtrar por versión de FIFA
  *     responses:
  *       200:
  *         description: Archivo CSV descargado exitosamente
@@ -288,14 +311,14 @@ router.get('/export/csv', exportPlayersToCSV);
  *         name: id
  *         required: true
  *         schema:
- *           type: string
- *         description: Nombre del jugador (ej. "Lionel Messi")
+ *           type: integer
+ *         description: ID del jugador
  *       - in: query
  *         name: skill
  *         required: true
  *         schema:
  *           type: string
- *           enum: [pace, shooting, passing, dribbling, defending, physic, overall]
+ *           enum: [overall, pace, shooting, passing, dribbling, defending, physic, attacking_finishing, attacking_heading_accuracy, skill_dribbling, defending_marking, defending_standing_tackle, goalkeeping_diving]
  *         description: Habilidad a visualizar en la linea de tiempo
  *     responses:
  *       200:
@@ -303,31 +326,7 @@ router.get('/export/csv', exportPlayersToCSV);
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 playerName:
- *                   type: string
- *                   example: "Lionel Messi"
- *                 skill:
- *                   type: string
- *                   example: "pace"
- *                 timeline:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       year:
- *                         type: string
- *                         example: "2020"
- *                       value:
- *                         type: integer
- *                         example: 85
- *                       age:
- *                         type: integer
- *                         example: 33
- *                       overall:
- *                         type: integer
- *                         example: 93
+ *               $ref: '#/components/schemas/TimelineResponse'
  *       400:
  *         description: Parametros invalidos
  *         content:
@@ -336,6 +335,8 @@ router.get('/export/csv', exportPlayersToCSV);
  *               $ref: '#/components/schemas/Error'
  *       401:
  *         description: No autorizado
+ *       404:
+ *         description: Jugador no encontrado
  *       500:
  *         description: Error interno del servidor
  */
@@ -346,7 +347,7 @@ router.get('/:id/timeline', getPlayerSkillsTimeline);
  * /api/players/import/csv:
  *   post:
  *     summary: Importar jugadores desde archivo CSV
- *     description: Sube un archivo CSV con datos de jugadores y los importa a la base de datos
+ *     description: Sube un archivo CSV con datos de jugadores y los importa a la base de datos. Requiere permisos de administrador.
  *     tags: [Jugadores]
  *     security:
  *       - bearerAuth: []
@@ -367,22 +368,15 @@ router.get('/:id/timeline', getPlayerSkillsTimeline);
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "1500 jugadores importados exitosamente"
- *                 imported:
- *                   type: integer
- *                   example: 1500
- *                 totalInFile:
- *                   type: integer
- *                   example: 1500
- *                 successRate:
- *                   type: string
- *                   example: "100%"
+ *               $ref: '#/components/schemas/ImportResponse'
  *       400:
  *         description: Archivo invalido o faltante
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: No tienes permisos de administrador
  *         content:
  *           application/json:
  *             schema:

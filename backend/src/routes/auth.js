@@ -24,11 +24,11 @@ const router = express.Router();
  *               email:
  *                 type: string
  *                 format: email
- *                 example: rodri@quiricocho.com
+ *                 example: admin@quiricocho.com
  *               password:
  *                 type: string
  *                 format: password
- *                 example: "123456"
+ *                 example: "admin123"
  *     responses:
  *       200:
  *         description: Login exitoso
@@ -69,7 +69,7 @@ router.post('/login', loginValidation, login);
  *               email:
  *                 type: string
  *                 format: email
- *                 example: rodri@quiricocho.com
+ *                 example: registro@quiricocho.com
  *               password:
  *                 type: string
  *                 format: password
