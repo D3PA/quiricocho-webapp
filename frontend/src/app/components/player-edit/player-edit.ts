@@ -12,20 +12,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 
 import { PlayersService } from '../../services/players.service';
 import { UtilsService } from '../../services/utils.service';
 import { Player } from '../../interfaces/player';
 import { ConfirmationModalComponent, ChangesData } from '../confirmation-modal/confirmation-modal';
-
-interface SkillConfig {
-  key: string;
-  label: string;
-  min: number;
-  max: number;
-  category: string;
-}
 
 @Component({
   selector: 'app-player-edit',
@@ -45,7 +38,7 @@ interface SkillConfig {
     MatAutocompleteModule
   ],
   templateUrl: './player-edit.html',
-  styleUrl: './player-edit.scss'
+  styleUrls: ['./player-edit.scss']
 })
 export class PlayerEditComponent implements OnInit {
   editForm!: FormGroup;
@@ -62,15 +55,7 @@ export class PlayerEditComponent implements OnInit {
   allPlayerTraits: string[] = [];
   filteredTraits: string[] = [];
   
-  // fecha de nacimiento
-  days: number[] = Array.from({length: 31}, (_, i) => i + 1);
-  months: string[] = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-  ];
-  years: number[] = Array.from({length: 69}, (_, i) => 2008 - i);
-
-  // configuracion de habilidades optimizada
+  // configuracion de habilidades completa 
   skillCategories = [
     {
       name: 'Habilidades Principales',
@@ -116,6 +101,50 @@ export class PlayerEditComponent implements OnInit {
         { key: 'movement_reactions', label: 'Reacciones', min: 0, max: 100, category: 'movimiento' },
         { key: 'movement_balance', label: 'Equilibrio', min: 0, max: 100, category: 'movimiento' }
       ]
+    },
+    {
+      name: 'Fuerza',
+      icon: 'fitness_center',
+      skills: [
+        { key: 'power_shot_power', label: 'Potencia Tiro', min: 0, max: 100, category: 'fuerza' },
+        { key: 'power_jumping', label: 'Salto', min: 0, max: 100, category: 'fuerza' },
+        { key: 'power_stamina', label: 'Resistencia', min: 0, max: 100, category: 'fuerza' },
+        { key: 'power_strength', label: 'Fuerza', min: 0, max: 100, category: 'fuerza' },
+        { key: 'power_long_shots', label: 'Tiros Lejanos', min: 0, max: 100, category: 'fuerza' }
+      ]
+    },
+    {
+      name: 'Mentalidad',
+      icon: 'psychology',
+      skills: [
+        { key: 'mentality_aggression', label: 'Agresividad', min: 0, max: 100, category: 'mentalidad' },
+        { key: 'mentality_interceptions', label: 'Intercepciones', min: 0, max: 100, category: 'mentalidad' },
+        { key: 'mentality_positioning', label: 'Posicionamiento', min: 0, max: 100, category: 'mentalidad' },
+        { key: 'mentality_vision', label: 'Visión', min: 0, max: 100, category: 'mentalidad' },
+        { key: 'mentality_penalties', label: 'Penales', min: 0, max: 100, category: 'mentalidad' },
+        { key: 'mentality_composure', label: 'Compostura', min: 0, max: 100, category: 'mentalidad' }
+      ]
+    },
+    {
+      name: 'Defensa',
+      icon: 'shield',
+      skills: [
+        { key: 'defending_marking', label: 'Marcaje', min: 0, max: 100, category: 'defensa' },
+        { key: 'defending_standing_tackle', label: 'Entrada Parada', min: 0, max: 100, category: 'defensa' },
+        { key: 'defending_sliding_tackle', label: 'Entrada Deslizante', min: 0, max: 100, category: 'defensa' }
+      ]
+    },
+    {
+      name: 'Arquero',
+      icon: 'sports',
+      skills: [
+        { key: 'goalkeeping_diving', label: 'Estiradas', min: 0, max: 100, category: 'arquero' },
+        { key: 'goalkeeping_handling', label: 'Juego Aéreo', min: 0, max: 100, category: 'arquero' },
+        { key: 'goalkeeping_kicking', label: 'Saques', min: 0, max: 100, category: 'arquero' },
+        { key: 'goalkeeping_positioning', label: 'Salidas', min: 0, max: 100, category: 'arquero' },
+        { key: 'goalkeeping_reflexes', label: 'Reflejos', min: 0, max: 100, category: 'arquero' },
+        { key: 'goalkeeping_speed', label: 'Velocidad Arquero', min: 0, max: 100, category: 'arquero' }
+      ]
     }
   ];
 
@@ -127,6 +156,7 @@ export class PlayerEditComponent implements OnInit {
     private playersService: PlayersService,
     private utilsService: UtilsService,
     private fb: FormBuilder,
+    private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {}
 
@@ -151,17 +181,17 @@ export class PlayerEditComponent implements OnInit {
       nationality_name: [''],
       
       // datos fisicos
-      age: [16, [Validators.min(16), Validators.max(60)]],
-      height_cm: [170, [Validators.min(150), Validators.max(220)]],
-      weight_kg: [70, [Validators.min(50), Validators.max(120)]],
+      age: [20, [Validators.min(16), Validators.max(60)]],
+      height_cm: [180, [Validators.min(150), Validators.max(220)]],
+      weight_kg: [75, [Validators.min(50), Validators.max(120)]],
       body_type: ['Normal'],
       preferred_foot: ['Right'],
       
       // ratings principales
-      overall: [50, [Validators.min(0), Validators.max(100)]],
-      potential: [50, [Validators.min(0), Validators.max(100)]],
+      overall: [65, [Validators.min(0), Validators.max(100)]],
+      potential: [70, [Validators.min(0), Validators.max(100)]],
       
-      // caracteristicas especiales
+      // características especiales
       weak_foot: [3, [Validators.min(1), Validators.max(5)]],
       skill_moves: [3, [Validators.min(1), Validators.max(5)]],
       international_reputation: [1, [Validators.min(1), Validators.max(5)]],
@@ -172,8 +202,8 @@ export class PlayerEditComponent implements OnInit {
       selectedTraits: this.fb.array([]),
       
       // datos financieros
-      value_eur: [0],
-      wage_eur: [0]
+      value_eur: [1000000],
+      wage_eur: [10000]
     });
 
     // inicializar todas las habilidades
@@ -183,7 +213,6 @@ export class PlayerEditComponent implements OnInit {
       });
     });
 
-    // suscribirse a cambios en las posiciones
     this.editForm.get('position_1')?.valueChanges.subscribe(() => this.updatePositions());
     this.editForm.get('position_2')?.valueChanges.subscribe(() => this.updatePositions());
     this.editForm.get('position_3')?.valueChanges.subscribe(() => this.updatePositions());
@@ -274,6 +303,7 @@ export class PlayerEditComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error cargando datos iniciales:', error);
+        this.showError('Error cargando datos del formulario');
       }
     });
   }
@@ -295,7 +325,8 @@ export class PlayerEditComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading player:', error);
+        console.error('Error cargando jugador:', error);
+        this.showError('Error cargando información del jugador');
         this.isLoading = false;
       }
     });
@@ -304,28 +335,26 @@ export class PlayerEditComponent implements OnInit {
   populateForm(): void {
     if (!this.player) return;
 
-    // informacion basica
     this.editForm.patchValue({
       long_name: this.player.long_name || '',
       player_positions: this.player.player_positions || '',
       club_name: this.player.club_name || '',
       nationality_name: this.player.nationality_name || '',
-      age: this.player.age || 16,
-      height_cm: this.player.height_cm || 170,
-      weight_kg: this.player.weight_kg || 70,
+      age: this.player.age || 20,
+      height_cm: this.player.height_cm || 180,
+      weight_kg: this.player.weight_kg || 75,
       body_type: this.player.body_type || 'Normal',
       preferred_foot: this.player.preferred_foot || 'Right',
-      overall: this.player.overall || 50,
-      potential: this.player.potential || 50,
+      overall: this.player.overall || 65,
+      potential: this.player.potential || 70,
       weak_foot: this.player.weak_foot || 3,
       skill_moves: this.player.skill_moves || 3,
       international_reputation: this.player.international_reputation || 1,
       work_rate: this.player.work_rate || 'Medium/Medium',
-      value_eur: this.player.value_eur || 0,
-      wage_eur: this.player.wage_eur || 0
+      value_eur: this.player.value_eur || 1000000,
+      wage_eur: this.player.wage_eur || 10000
     });
 
-    // procesar posiciones
     if (this.player.player_positions) {
       const positions = this.player.player_positions.split(',').map(p => p.trim());
       this.editForm.patchValue({
@@ -335,7 +364,6 @@ export class PlayerEditComponent implements OnInit {
       });
     }
 
-    // procesar traits
     this.selectedTraits.clear();
     if (this.player.player_traits) {
       const traits = this.player.player_traits.split(',').map(t => t.trim()).filter(t => t && t !== 'NA');
@@ -344,7 +372,7 @@ export class PlayerEditComponent implements OnInit {
       });
     }
 
-    // procesar habilidades
+    // Procesar TODAS las habilidades
     this.skillCategories.forEach(category => {
       category.skills.forEach(skill => {
         const value = this.player![skill.key as keyof Player] as number;
@@ -380,36 +408,24 @@ export class PlayerEditComponent implements OnInit {
     const changes: { field: string; original: any; updated: any }[] = [];
     const formData = this.editForm.value;
 
-    // TODOS los campos posibles a comparar
+    // TODOS los campos posibles a comparar (incluyendo todas las habilidades)
     const fieldsToCompare = [
-      // informacion basica
       'long_name', 'player_positions', 'club_name', 'nationality_name',
       'age', 'height_cm', 'weight_kg', 'body_type', 'preferred_foot',
       
-      // ratings principales
       'overall', 'potential',
       
-      // habilidades principales
-      'pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic',
-      
-      // caracteristicas especiales
       'weak_foot', 'skill_moves', 'international_reputation', 'work_rate',
       
-      // habilidades de ataque
-      'attacking_crossing', 'attacking_finishing', 'attacking_heading_accuracy', 
-      'attacking_short_passing', 'attacking_volleys',
-      
-      // habilidades tecnicas
-      'skill_dribbling', 'skill_curve', 'skill_fk_accuracy', 
-      'skill_long_passing', 'skill_ball_control',
-      
-      // habilidades de movimiento
-      'movement_acceleration', 'movement_sprint_speed', 'movement_agility',
-      'movement_reactions', 'movement_balance',
-      
-      // datos financieros
       'value_eur', 'wage_eur'
     ];
+
+    // agregar TODAS las habilidades a comparar
+    this.skillCategories.forEach(category => {
+      category.skills.forEach(skill => {
+        fieldsToCompare.push(skill.key);
+      });
+    });
 
     // comparar campos basicos y habilidades
     fieldsToCompare.forEach(field => {
@@ -418,7 +434,7 @@ export class PlayerEditComponent implements OnInit {
       
       if (original !== updated && !(original == null && updated == null)) {
         changes.push({
-          field,
+          field: this.getFieldDisplayName(field),
           original: this.formatValue(original),
           updated: this.formatValue(updated)
         });
@@ -431,13 +447,47 @@ export class PlayerEditComponent implements OnInit {
     
     if (originalTraits !== updatedTraits) {
       changes.push({
-        field: 'player_traits',
+        field: 'Player Traits',
         original: originalTraits || 'Vacío',
         updated: updatedTraits || 'Vacío'
       });
     }
 
     return changes;
+  }
+
+  private getFieldDisplayName(field: string): string {
+    const fieldNames: { [key: string]: string } = {
+      'long_name': 'Nombre',
+      'player_positions': 'Posiciones',
+      'club_name': 'Club',
+      'nationality_name': 'Nacionalidad',
+      'age': 'Edad',
+      'height_cm': 'Altura',
+      'weight_kg': 'Peso',
+      'body_type': 'Tipo de Cuerpo',
+      'preferred_foot': 'Pierna Hábil',
+      'overall': 'Overall',
+      'potential': 'Potencial',
+      'weak_foot': 'Pierna Mala',
+      'skill_moves': 'Skill Moves',
+      'international_reputation': 'Reputación Internacional',
+      'work_rate': 'Work Rate',
+      'value_eur': 'Valor de Mercado',
+      'wage_eur': 'Salario Semanal'
+    };
+
+    // para habilidades, buscar en las categorías
+    if (!fieldNames[field]) {
+      for (const category of this.skillCategories) {
+        const skill = category.skills.find(s => s.key === field);
+        if (skill) {
+          return skill.label;
+        }
+      }
+    }
+
+    return fieldNames[field] || field;
   }
 
   private formatValue(value: any): string {
@@ -455,6 +505,7 @@ export class PlayerEditComponent implements OnInit {
       const changes = this.detectChanges();
       
       if (changes.length === 0) {
+        this.showSuccess('No se detectaron cambios');
         this.router.navigate(['/player', this.player.id]);
         return;
       }
@@ -499,11 +550,13 @@ export class PlayerEditComponent implements OnInit {
     this.playersService.updatePlayer(this.player!.id, formData).subscribe({
       next: (response) => {
         this.isSubmitting = false;
+        this.showSuccess('Jugador actualizado exitosamente');
         this.router.navigate(['/player', this.player?.id]);
       },
       error: (error) => {
-        console.error('Error updating player:', error);
+        console.error('Error actualizando jugador:', error);
         this.isSubmitting = false;
+        this.showError('Error al actualizar el jugador: ' + (error.error?.error || error.message));
       }
     });
   }
@@ -514,6 +567,20 @@ export class PlayerEditComponent implements OnInit {
     } else {
       this.router.navigate(['/players']);
     }
+  }
+
+  private showError(message: string): void {
+    this.snackBar.open(message, 'Cerrar', {
+      duration: 5000,
+      panelClass: ['error-snackbar']
+    });
+  }
+
+  private showSuccess(message: string): void {
+    this.snackBar.open(message, 'Cerrar', {
+      duration: 3000,
+      panelClass: ['success-snackbar']
+    });
   }
 
   formatCurrency(value: number): string {
