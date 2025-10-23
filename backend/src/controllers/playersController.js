@@ -20,7 +20,7 @@ const getPlayers = async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    // Construir condiciones de busqueda
+    // construir condiciones de busqueda
     const whereConditions = {};
 
     if (search) {
@@ -32,7 +32,7 @@ const getPlayers = async (req, res) => {
       ];
     }
 
-    // Filtros individuales (para cuando se usan filtros específicos)
+    // filtros individuales (para cuando se usan filtros específicos)
     if (club && !search) {
       whereConditions.club_name = { [Op.like]: `%${club}%` };
     }
@@ -56,7 +56,7 @@ const getPlayers = async (req, res) => {
       order = [['overall', 'DESC']]; 
     }
 
-    // Obtener todos los campos
+    // obtener todos los campos
     const { count, rows: players } = await Player.findAndCountAll({
       where: whereConditions,
       limit: parseInt(limit),
@@ -127,7 +127,7 @@ const updatePlayer = async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
 
-    // Verificar que el usuario es admin
+    // verificar que el usuario es admin
     if (!req.user || !req.user.is_admin) {
       return res.status(403).json({
         error: 'No tienes permisos para editar jugadores',
@@ -144,15 +144,15 @@ const updatePlayer = async (req, res) => {
       });
     }
 
-    // Campos que se pueden actualizar
+    // campos que se pueden actualizar
     const allowedFields = [
       'long_name', 'player_positions', 'club_name', 'nationality_name',
       'overall', 'potential', 'value_eur', 'wage_eur', 'age', 'height_cm', 'weight_kg',
       'preferred_foot', 'weak_foot', 'skill_moves', 'international_reputation',
       'work_rate', 'body_type', 'player_traits',
-      // Habilidades principales
+      // habilidades principales
       'pace', 'shooting', 'passing', 'dribbling', 'defending', 'physic',
-      // Habilidades específicas
+      // habilidades especificas
       'attacking_crossing', 'attacking_finishing', 'attacking_heading_accuracy',
       'attacking_short_passing', 'attacking_volleys', 'skill_dribbling',
       'skill_curve', 'skill_fk_accuracy', 'skill_long_passing', 'skill_ball_control',
@@ -166,7 +166,7 @@ const updatePlayer = async (req, res) => {
       'goalkeeping_reflexes', 'goalkeeping_speed'
     ];
 
-    // Filtrar solo los campos permitidos
+    // filtrar solo los campos permitidos
     const filteredUpdateData = {};
     Object.keys(updateData).forEach(key => {
       if (allowedFields.includes(key)) {
@@ -196,18 +196,23 @@ const createPlayer = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        error: 'Datos de entrada invalidos',
+        error: 'Datos de entrada inválidos',
         details: errors.array(),
         code: 'VALIDATION_ERROR'
       });
     }
 
+    // usar la version que viene del frontend
     const playerData = {
       ...req.body,
-      fifa_version: '2023',
       fifa_update: 'Custom',
-      player_face_url: 'https://cdn.sofifa.net/players/notfound/0_240.png'
+      player_face_url: req.body.player_face_url || 'https://cdn.sofifa.net/players/notfound/0_240.png'
     };
+
+    // si no viene fifa_version, usar '23' como default
+    if (!playerData.fifa_version) {
+      playerData.fifa_version = '23';
+    }
 
     const player = await Player.create(playerData);
 
@@ -220,7 +225,8 @@ const createPlayer = async (req, res) => {
     console.error('Error creando jugador:', error);
     res.status(500).json({
       error: 'Error interno del servidor',
-      code: 'PLAYER_CREATE_ERROR'
+      code: 'PLAYER_CREATE_ERROR',
+      details: error.message
     });
   }
 };
@@ -252,19 +258,19 @@ const exportPlayersToCSV = async (req, res) => {
     if (nationality && !search) whereConditions.nationality_name = { [Op.like]: `%${nationality}%` };
     if (fifa_version) whereConditions.fifa_version = fifa_version;
 
-    // Obtener todos los campos posibles
+    // obtener todos los campos posibles
     const players = await Player.findAll({
       where: whereConditions,
       attributes: { 
         exclude: ['createdAt', 'updatedAt']
       },
-      limit: 10000 // Limite para no sobrecargar
+      limit: 10000 // limite para no sobrecargar
     });
 
-    // Convertir a CSV usando 'xlsx'
+    // convertir a CSV usando 'xlsx'
     const XLSX = require('xlsx');
     
-    // Preparar datos para CSV
+    // preparar datos para CSV
     const csvData = players.map(player => {
       const playerData = player.get({ plain: true });
       
@@ -283,14 +289,14 @@ const exportPlayersToCSV = async (req, res) => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Jugadores_FIFA');
     
-    // Generar buffer con encoding
+    // generar buffer con encoding
     const buffer = XLSX.write(workbook, { 
       type: 'buffer', 
       bookType: 'csv',
       bookSST: false 
     });
 
-    // Configurar headers para descarga con encoding correcto
+    // configurar headers para descarga con encoding correcto
     const filename = `jugadores_fifa_${search || 'completo'}_${new Date().toISOString().split('T')[0]}.csv`;
     
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
@@ -328,7 +334,7 @@ const getPlayerSkillsTimeline = async (req, res) => {
       });
     }
 
-    // Obtener el jugador por ID para saber su nombre
+    // obtener el jugador por ID para saber su nombre
     const currentPlayer = await Player.findByPk(id);
     
     if (!currentPlayer) {
@@ -338,7 +344,7 @@ const getPlayerSkillsTimeline = async (req, res) => {
       });
     }
 
-    // Buscar todas las versiones por nombre
+    // buscar todas las versiones por nombre
     const playerVersions = await Player.findAll({
       where: { 
         long_name: currentPlayer.long_name

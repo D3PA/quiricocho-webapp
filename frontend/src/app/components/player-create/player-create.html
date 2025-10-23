@@ -1,0 +1,380 @@
+<div class="player-create-container">
+  <!-- Header -->
+  <div class="profile-header">
+    <button mat-stroked-button (click)="goBack()" class="back-btn">
+      <mat-icon>arrow_back</mat-icon>
+      Volver a Jugadores
+    </button>
+    <h1 class="player-name">Crear Nuevo Jugador</h1>
+    <div class="header-actions">
+      <div class="player-overall-badge" [style.background]="getStatColor(createForm.get('overall')?.value)">
+        {{ createForm.get('overall')?.value }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario principal -->
+  <form [formGroup]="createForm" class="create-form">
+    
+    <!-- SECCION 1: INFORMACION BASICA Y VERSION -->
+    <mat-card class="profile-card basic-info-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>person</mat-icon>
+          Información Básica y Versión FIFA
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="compact-form-grid">
+          
+          <!-- Fila 1: Nombre y posiciones -->
+          <div class="form-row compact">
+            <mat-form-field appearance="outline" class="name-field">
+              <mat-label>Nombre Completo</mat-label>
+              <input matInput formControlName="long_name" placeholder="Ej: Lionel Messi">
+              <mat-icon matSuffix>badge</mat-icon>
+              <mat-error *ngIf="createForm.get('long_name')?.hasError('required')">
+                El nombre es requerido
+              </mat-error>
+            </mat-form-field>
+
+            <div class="positions-compact">
+              <div class="positions-row">
+                <mat-form-field appearance="outline" class="position-select">
+                  <mat-label>Posición 1</mat-label>
+                  <mat-select formControlName="position_1" required>
+                    <mat-option value="">-</mat-option>
+                    <mat-option *ngFor="let position of positions" [value]="position">
+                      {{ position }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="position-select">
+                  <mat-label>Posición 2</mat-label>
+                  <mat-select formControlName="position_2">
+                    <mat-option value="">-</mat-option>
+                    <mat-option *ngFor="let position of positions" [value]="position">
+                      {{ position }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="position-select">
+                  <mat-label>Posición 3</mat-label>
+                  <mat-select formControlName="position_3">
+                    <mat-option value="">-</mat-option>
+                    <mat-option *ngFor="let position of positions" [value]="position">
+                      {{ position }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fila 2: Club, nacionalidad y version FIFA -->
+          <div class="form-row compact">
+            <mat-form-field appearance="outline" class="compact-field">
+              <mat-label>Club</mat-label>
+              <mat-select formControlName="club_name" [compareWith]="compareStrings">
+                <mat-option value="">Sin Club</mat-option>
+                <mat-option *ngFor="let club of clubs" [value]="club">
+                  {{ club }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>stadium</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="compact-field">
+              <mat-label>Nacionalidad</mat-label>
+              <mat-select formControlName="nationality_name" [compareWith]="compareStrings">
+                <mat-option value="">Sin Nacionalidad</mat-option>
+                <mat-option *ngFor="let nationality of nationalities" [value]="nationality">
+                  {{ nationality }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>flag</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="compact-field">
+              <mat-label>Versión FIFA</mat-label>
+              <mat-select formControlName="fifa_version">
+                <mat-option value="all">Todas las versiones (15-23)</mat-option>
+                <mat-option *ngFor="let version of fifaVersions" [value]="version">
+                  FIFA {{ version }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>sports_esports</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <!-- Fila 3: Datos fisicos -->
+          <div class="form-row compact">
+            <mat-form-field appearance="outline" class="compact-field">
+              <mat-label>Edad</mat-label>
+              <input matInput type="number" formControlName="age" min="16" max="60">
+              <mat-icon matSuffix>cake</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="compact-field">
+              <mat-label>Altura (cm)</mat-label>
+              <input matInput type="number" formControlName="height_cm" min="150" max="220">
+              <mat-icon matSuffix>height</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="compact-field">
+              <mat-label>Peso (kg)</mat-label>
+              <input matInput type="number" formControlName="weight_kg" min="50" max="120">
+              <mat-icon matSuffix>fitness_center</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="compact-field">
+              <mat-label>Tipo de Cuerpo</mat-label>
+              <mat-select formControlName="body_type">
+                <mat-option *ngFor="let bodyType of bodyTypes" [value]="bodyType">
+                  {{ bodyType }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>accessibility</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="compact-field">
+              <mat-label>Pierna Hábil</mat-label>
+              <mat-select formControlName="preferred_foot">
+                <mat-option value="Right">Derecha</mat-option>
+                <mat-option value="Left">Izquierda</mat-option>
+              </mat-select>
+              <mat-icon matSuffix>directions_walk</mat-icon>
+            </mat-form-field>
+          </div>
+
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- SECCION 2: RATINGS Y HABILIDADES -->
+    <mat-card class="profile-card skills-compact-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>star</mat-icon>
+          Ratings y Habilidades
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        
+        <!-- Ratings principales -->
+        <div class="ratings-row">
+          <div class="rating-compact">
+            <label>Overall</label>
+            <div class="skill-box-compact" [style.background]="getStatColor(createForm.get('overall')?.value)">
+              <input 
+                type="number" 
+                formControlName="overall"
+                min="0" 
+                max="100"
+                (change)="onSkillChange('overall', $event)"
+                class="skill-input"
+              >
+            </div>
+          </div>
+
+          <div class="rating-compact">
+            <label>Potencial</label>
+            <div class="skill-box-compact" [style.background]="getStatColor(createForm.get('potential')?.value)">
+              <input 
+                type="number" 
+                formControlName="potential"
+                min="0" 
+                max="100"
+                (change)="onSkillChange('potential', $event)"
+                class="skill-input"
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Habilidades en grid - TODAS LAS CATEGORIAS -->
+        <div class="skills-compact-grid">
+          <div class="skill-category-compact" *ngFor="let category of skillCategories">
+            <h4 class="category-title">
+              <mat-icon>{{category.icon}}</mat-icon>
+              {{category.name}}
+            </h4>
+            <div class="skills-row">
+              <div class="skill-compact" *ngFor="let skill of category.skills">
+                <label>{{skill.label}}</label>
+                <div class="skill-box-compact" [style.background]="getStatColor(getSkillValue(skill.key))">
+                  <input 
+                    type="number" 
+                    [formControlName]="skill.key"
+                    [min]="skill.min" 
+                    [max]="skill.max"
+                    (change)="onSkillChange(skill.key, $event)"
+                    class="skill-input"
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </mat-card-content>
+    </mat-card>
+
+    <!-- SECCION 3: CARACTERISTICAS ESPECIALES -->
+    <mat-card class="profile-card special-compact-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>auto_awesome</mat-icon>
+          Características Especiales
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        
+        <!-- Ratings con estrellas -->
+        <div class="special-ratings-row">
+          <div class="special-rating">
+            <label>Pierna Mala</label>
+            <div class="stars-container">
+              <mat-icon 
+                *ngFor="let star of getStars(5)" 
+                (click)="createForm.get('weak_foot')?.setValue(star)"
+                [class.active]="star <= (createForm.get('weak_foot')?.value || 0)"
+                class="star-icon"
+              >
+                {{ star <= (createForm.get('weak_foot')?.value || 0) ? 'star' : 'star_border' }}
+              </mat-icon>
+            </div>
+          </div>
+
+          <div class="special-rating">
+            <label>Skill Moves</label>
+            <div class="stars-container">
+              <mat-icon 
+                *ngFor="let star of getStars(5)" 
+                (click)="createForm.get('skill_moves')?.setValue(star)"
+                [class.active]="star <= (createForm.get('skill_moves')?.value || 0)"
+                class="star-icon"
+              >
+                {{ star <= (createForm.get('skill_moves')?.value || 0) ? 'star' : 'star_border' }}
+              </mat-icon>
+            </div>
+          </div>
+
+          <div class="special-rating">
+            <label>Reputación</label>
+            <div class="stars-container">
+              <mat-icon 
+                *ngFor="let star of getStars(5)" 
+                (click)="createForm.get('international_reputation')?.setValue(star)"
+                [class.active]="star <= (createForm.get('international_reputation')?.value || 0)"
+                class="star-icon"
+              >
+                {{ star <= (createForm.get('international_reputation')?.value || 0) ? 'star' : 'star_border' }}
+              </mat-icon>
+            </div>
+          </div>
+
+          <mat-form-field appearance="outline" class="work-rate-field">
+            <mat-label>Work Rate</mat-label>
+            <mat-select formControlName="work_rate">
+              <mat-option *ngFor="let workRate of workRates" [value]="workRate">
+                {{ workRate }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>speed</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <!-- Player traits con chips -->
+        <div class="traits-section">
+          <label>Player Traits</label>
+          <mat-form-field appearance="outline" class="traits-field">
+            <mat-label>Buscar y agregar traits...</mat-label>
+            <input 
+              matInput 
+              #traitInput
+              formControlName="player_traits"
+              [matAutocomplete]="autoTraits"
+              (input)="filterTraits($event)"
+              placeholder="Escribe para buscar traits..."
+            >
+            <mat-icon matSuffix>search</mat-icon>
+            <mat-autocomplete #autoTraits="matAutocomplete" (optionSelected)="addTrait($event)">
+              <mat-option *ngFor="let trait of filteredTraits" [value]="trait">
+                {{trait}}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <!-- Chips de traits seleccionados -->
+          <div class="traits-chips" *ngIf="selectedTraits.controls.length > 0">
+            <mat-chip 
+              *ngFor="let trait of selectedTraits.controls; let i = index" 
+              [removable]="true"
+              (removed)="removeTrait(i)"
+              class="trait-chip"
+            >
+              {{ trait.value }}
+              <mat-icon matChipRemove>cancel</mat-icon>
+            </mat-chip>
+          </div>
+          <div class="no-traits" *ngIf="selectedTraits.controls.length === 0">
+            No hay traits seleccionados. Busca y selecciona traits arriba.
+          </div>
+        </div>
+
+        <!-- Datos financieros -->
+        <div class="financial-row">
+          <mat-form-field appearance="outline" class="financial-field">
+            <mat-label>Valor de Mercado (€)</mat-label>
+            <input matInput type="number" formControlName="value_eur" min="0">
+            <mat-icon matSuffix>euro</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="financial-field">
+            <mat-label>Salario Semanal (€)</mat-label>
+            <input matInput type="number" formControlName="wage_eur" min="0">
+            <mat-icon matSuffix>payments</mat-icon>
+          </mat-form-field>
+        </div>
+
+      </mat-card-content>
+    </mat-card>
+
+    <!-- BOTONES DE ACCION -->
+    <div class="form-actions">
+      <button 
+        mat-stroked-button 
+        type="button" 
+        (click)="goBack()"
+        class="cancel-btn"
+      >
+        <mat-icon>cancel</mat-icon>
+        Cancelar
+      </button>
+      
+      <button 
+        mat-raised-button 
+        color="primary" 
+        type="button"
+        (click)="onSubmit()"
+        [disabled]="!createForm.valid || isSubmitting"
+        class="save-btn"
+      >
+        <mat-spinner *ngIf="isSubmitting" diameter="20" class="btn-spinner"></mat-spinner>
+        <mat-icon *ngIf="!isSubmitting">add_circle</mat-icon>
+        {{ isSubmitting ? 'Creando...' : 'Crear Jugador' }}
+      </button>
+    </div>
+
+  </form>
+
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="60"></mat-spinner>
+    <h3>Cargando datos del formulario...</h3>
+  </div>
+
+</div>
