@@ -24,7 +24,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerSetup);
 // por alguna razon algunos caracteres como acentos se ven mal porque mysql2 los esta interpretando mal.
 // esto recorre la respuesta JSON y convierte esos strings a UTF-8 para que lleguen bien al frontend.
 // es la unica solucion que encontre por ahora o permanente ya que me atrasa para terminar el proyecto.
-app.use((req, res, next) => {
+/*app.use((req, res, next) => {
   const oldJson = res.json;
   res.json = function (data) {
     function fix(obj) {
@@ -40,6 +40,7 @@ app.use((req, res, next) => {
   };
   next();
 });
+*/
 
 // rutas publicas
 app.get('/api/public/info', (req, res) => {
