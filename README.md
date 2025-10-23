@@ -180,7 +180,8 @@ docker-compose up -d --build
 ```
 
 ```bash
-# ⚠️ La primera vez que levantes la aplicación, usa --build para asegurarte de que las imágenes se construyan correctamente.
+# ⚠️ La primera vez que levantes la aplicación, usar --build
+# para asegurarse de que las imágenes se construyan correctamente.
 # En ejecuciones posteriores, docker-compose up -d es suficiente.
 
 # Ver estado de los servicios
@@ -248,6 +249,7 @@ docker-compose build --no-cache
 
 ## Demo
 https://github.com/user-attachments/assets/8d507d73-964f-4118-a6c2-0f4c645be36b
+
 
 
 
