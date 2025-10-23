@@ -15,7 +15,7 @@
 Crea, edita, filtra y analiza jugadores con estadísticas completas y timeline de habilidades.
 
 [![Node.js](https://img.shields.io/badge/Node.js-20.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![Angular](https://img.shields.io/badge/Angular-17.x-DD0031?style=for-the-badge&logo=angular&logoColor=white)](https://angular.dev/)
+[![Angular](https://img.shields.io/badge/Angular-20.x-DD0031?style=for-the-badge&logo=angular&logoColor=white)](https://angular.dev/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-24.x-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![SASS](https://img.shields.io/badge/SASS-1.x-CC6699?style=for-the-badge&logo=sass&logoColor=white)](https://sass-lang.com/)
@@ -249,6 +249,7 @@ docker-compose build --no-cache
 
 ## Demo
 https://github.com/user-attachments/assets/8d507d73-964f-4118-a6c2-0f4c645be36b
+
 
 
 
